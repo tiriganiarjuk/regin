@@ -16,7 +16,7 @@ from regin.structures.anthropic_render import (
     Dispatcher as DispatcherOut,
     DisplayEntry,
     DisplayEntries,
-    DisplayTools,
+    DisplayToolsCommands,
     Examples as ExamplesOut,
     Frontmatter,
     FrontmatterTools,
@@ -122,7 +122,7 @@ def build_display_entries(
             rel = relativize_path(abs_path, prefix)
             path_to_tools.setdefault(rel, set()).add(tool_or_cmd)
     entries = [
-        DisplayEntry(path=rel, tools=DisplayTools(root=sorted(tools)))
+        DisplayEntry(path=rel, tools=DisplayToolsCommands(root=sorted(tools)))
         for rel, tools in sorted(path_to_tools.items())
     ]
     return DisplayEntries(root=entries)
@@ -236,12 +236,14 @@ def build_critical_rules(
         has_output_tool=True,
         tool_name=custom_tool.tool_name,
         name_needed=(
-            output_tool.enforcement_output_tool_name_needed
-            if output_tool else None
+            output_tool.enforcement_output_tool_name_needed.root
+            if output_tool and output_tool.enforcement_output_tool_name_needed
+            else None
         ),
         batch_size=(
-            output_tool.enforcement_output_tool_batch_size
-            if output_tool else None
+            output_tool.enforcement_output_tool_batch_size.root
+            if output_tool and output_tool.enforcement_output_tool_batch_size
+            else None
         ),
     )
 
@@ -257,16 +259,41 @@ def build_writing_output(
     """Build resolved writing_output section. None when no custom tool."""
     if custom_tool is None or output_tool is None:
         return None
+    ot = output_tool
     return WritingOutputAnthropic(
         tool_name=custom_tool.tool_name,
         invocation_variant=custom_tool.invocation_variant,
         invocation_display=custom_tool.invocation_display,
-        name_needed=output_tool.enforcement_output_tool_name_needed,
-        name_pattern=output_tool.enforcement_output_tool_name_pattern,
-        batch_size=output_tool.enforcement_output_tool_batch_size,
-        schema_path=output_tool.enforcement_output_tool_schema_path,
-        file_path=output_tool.enforcement_output_tool_file_path,
-        directory_path=output_tool.enforcement_output_tool_directory_path,
+        name_needed=(
+            ot.enforcement_output_tool_name_needed.root
+            if ot.enforcement_output_tool_name_needed is not None
+            else False
+        ),
+        name_pattern=(
+            ot.enforcement_output_tool_name_pattern.root
+            if ot.enforcement_output_tool_name_pattern is not None
+            else None
+        ),
+        batch_size=(
+            ot.enforcement_output_tool_batch_size.root
+            if ot.enforcement_output_tool_batch_size is not None
+            else None
+        ),
+        schema_path=(
+            ot.enforcement_output_tool_schema_path.root
+            if ot.enforcement_output_tool_schema_path is not None
+            else None
+        ),
+        file_path=(
+            ot.enforcement_output_tool_file_path.root
+            if ot.enforcement_output_tool_file_path is not None
+            else None
+        ),
+        directory_path=(
+            ot.enforcement_output_tool_directory_path.root
+            if ot.enforcement_output_tool_directory_path is not None
+            else None
+        ),
     )
 
 
