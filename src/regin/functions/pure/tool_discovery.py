@@ -62,18 +62,44 @@ def schema_paths_match(
     return spec.enforcement_output_tool_schema_path.root == entry.schema_path
 
 
+def extract_pattern_suffix(pattern: str) -> str:
+    """Extract the file suffix from a FilenameTemplate.
+
+    '{uid}.summaries.jsonl' → '.summaries.jsonl'
+    '{entry-id}.json' → '.json'
+    """
+    idx = pattern.find("}")
+    if idx == -1:
+        return ""
+    return pattern[idx + 1:]
+
+
+def registry_suffix(entry: ToolRegistryEntry) -> str:
+    """Derive the expected filename suffix from a registry entry."""
+    if entry.output_path_kind == OutputPathKind.directory_name:
+        return f".{entry.name_extension}" if entry.name_extension else ""
+    if entry.output_path_kind == OutputPathKind.directory_prefix:
+        return entry.name_suffix or ""
+    return ""
+
+
 def output_paths_match(
     spec: EnforcementOutputTool,
     entry: ToolRegistryEntry,
 ) -> bool:
-    """Check output path agreement between spec and registry entry."""
+    """Check output path and naming pattern agreement."""
     if entry.output_path_kind == OutputPathKind.fixed_file:
         if spec.enforcement_output_tool_file_path is None:
             return False
         return spec.enforcement_output_tool_file_path.root == entry.file_path
     if spec.enforcement_output_tool_directory_path is None:
         return False
-    return spec.enforcement_output_tool_directory_path.root == entry.directory_path
+    if spec.enforcement_output_tool_directory_path.root != entry.directory_path:
+        return False
+    spec_pattern = spec.enforcement_output_tool_name_pattern
+    if spec_pattern is None:
+        return registry_suffix(entry) == ""
+    return extract_pattern_suffix(spec_pattern.root) == registry_suffix(entry)
 
 
 # ---------------------------------------------------------------------------

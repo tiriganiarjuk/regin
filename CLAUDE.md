@@ -1,0 +1,128 @@
+# Regin — Context Refresh Protocol
+
+## STOP. Read this before writing any code.
+
+You are working on a DAG pipeline resolver. You have context from a compaction summary or from earlier in this session. **You are almost certainly wrong about the details.**
+
+After compaction, you have step names and a DAG shape but lose the gate IO model, the checkpoint-not-branch naming, the pure/impure boundary, and the ways this pipeline's architecture diverges from generic Python patterns. You will produce output that looks right, passes tests, and silently violates the architecture.
+
+**This has happened before.** Previous sessions working on the predecessor (`transform_to_universal`) have:
+
+- Named steps sequentially (`step_01`, `step_02`...) on a DAG — hiding parallelism and teaching false dependencies
+- Put IO (file reads/writes) inside Python code when gates handle all IO
+- Used `dict[str, Any]` instead of frozen Pydantic models
+- Built ad-hoc Python validation instead of using JSON Schema — a SESSION-TERMINATING violation
+- Written monolithic functions exceeding Gleipnir's 50-line limit
+- Confused the content branch (levels 3-5) with the permissions branch (level 3) — they are independent until level 6
+- Created separate `loaders.py` and `writers.py` when gates handle IO directly
+
+None of them felt uncertain while doing it.
+
+**The test:** Can you draw the DAG from memory — which levels fan out, where the branches are, where they converge? Can you state what gates do (read/write files, validate, convert TOML↔JSON) and what Python does NOT do (no file IO, no validation)? If not, read DAG_EXPLAINED.md and BRANCH_EXPLAINED.md before proceeding.
+
+---
+
+## You Will Get These Things Wrong
+
+### Putting IO in Python Code
+**Detection:** If you find `Path`, `open()`, `read_text()`, `write_text()` anywhere in Python...
+**Why it's wrong:** Gates handle ALL IO. Input gates read files and return JSON. Output gates take JSON and write files. Python code between gates never touches the filesystem. The only exception is include file loading during content reduction (levels 3 content branch), which is the step's domain-specific work.
+**Recovery:** Read BRANCH_EXPLAINED.md "What the Gates Do"
+
+### Naming Steps Sequentially
+**Detection:** If you find yourself writing `step_01`, `step_02`, or any sequential numbering...
+**Why it's wrong:** Sequential numbering on a DAG is a lie. It teaches every future LLM that steps depend on each other linearly. Steps at the same level are independent and parallel. The naming convention is `level{N}_{branch}_{operation}.py`.
+**Recovery:** Read DAG_EXPLAINED.md "File Naming Convention"
+
+### Naming Gates After Branches
+**Detection:** If you find yourself thinking "this is the instructions gate" or "this is the permissions gate"...
+**Why it's wrong:** Gates are named after the checkpoint schema they validate, not the branch they belong to. `gate_paths_verified_input` serves five different branches. The gate doesn't know or care which branch calls it.
+**Recovery:** Read BRANCH_EXPLAINED.md "Checkpoints, Not Branches"
+
+### Using dict Instead of Frozen Pydantic Models
+**Detection:** If you find `dict[str, Any]` or `.model_dump()` anywhere except inside a work function before handing JSON to the output gate...
+**Why it's wrong:** Type safety is end-to-end. Models are frozen (`ConfigDict(frozen=True)`). Transformations use `model_copy(update={})`. Serialization via `model_dump_json(by_alias=True, exclude_none=True)` happens ONCE per branch, inside the work function.
+**Recovery:** Look at any work function — it parses JSON to a model, transforms, serializes back.
+
+### Writing Ad-Hoc Validation Instead of JSON Schema
+**Detection:** If you find `if field not in record` or `isinstance(record[field], str)` checks...
+**Why it's wrong:** SESSION-TERMINATING VIOLATION. Schema validation means a `.schema.json` file exists and the compiled gate validates against it. Always. No exceptions.
+**Recovery:** Read `documentation/operations/STANDARD_OPERATING_PROCEDURES.md` § Schema Validation.
+
+### Breaking the DAG Shape
+**Detection:** If you pass data from a level 3 content step to the permissions step, or make level 4 depend on level 3 permissions output...
+**Why it's wrong:** The content branch (levels 3-5) and the permissions branch (level 3) are independent until level 6 (convergence). Breaking this creates implicit coupling.
+**Recovery:** Read DAG_EXPLAINED.md "The Levels"
+
+### Exceeding Gleipnir Constraints Then Suppressing
+**Detection:** If you add `# type: ignore`, expand quarantine lists, or think "this function needs more than 50 lines"...
+**Why it's wrong:** Gleipnir makes bad patterns expensive. If you can't fit in 50 lines, the function does too many things. Find the functional primitive.
+**Recovery:** Re-read `~/.ai/phoenix/coding_reference/AI_BREAKTHROUGHS_HEMINGWAY_CODING.md`
+
+### Modifying Generated Structure Files
+**Detection:** If you edit files in `structures/` that were generated by `generate_structures.py`...
+**Why it's wrong:** Most structure files are generated from JSON Schemas. Manual edits will be silently overwritten. Hand-written files: `gate_types.py`, `errors.py`, `resolved_grants.py`, `enums.py`, `vendor_lookup.py`, `resolved_tool.py`.
+**Recovery:** Change the Verdandi YAML source → run Draupnir → run `generate_structures.py`.
+
+---
+
+## Architecture in One Paragraph
+
+Regin takes a raw agent definition TOML and resolves it through a DAG of gated stages into a platform-agnostic universal render format. Gates are compiled Rust (PyO3) modules that handle ALL file IO — input gates read TOML and return validated JSON, output gates take JSON and write validated TOML. Python code between gates transforms the delta: what the output schema requires that the input schema does not yet contain. The DAG fans out at level 3 into a content branch (four parallel reducers → two merges → includes merge) and a permissions branch (single resolver), converges at level 6, regroups at level 7, then fans out again at level 8 for per-vendor resolution. Every checkpoint on disk is TOML. Every gate converts TOML↔JSON at the boundary. Python always works with JSON. The runner harness is identical for every branch: `gate_in(path) → work(json) → gate_out(path)`.
+
+---
+
+## Coding Discipline References
+
+| Document | Path | What it tells you |
+|----------|------|-------------------|
+| **DAG_EXPLAINED** | `tools/regin/DAG_EXPLAINED.md` | Full DAG shape, level descriptions, gate inventory, file naming |
+| **BRANCH_EXPLAINED** | `tools/regin/BRANCH_EXPLAINED.md` | Gate IO model, checkpoint principle, uniform runner, work function contract |
+| **Hemingway Coding** | `phoenix/coding_reference/AI_BREAKTHROUGHS_HEMINGWAY_CODING.md` | Each function does ONE thing |
+| **IO Externalization** | `phoenix/coding_reference/AI_BREAKTHROUGHS_IO_EXTERNALIZATION.md` | 90%+ of errors at IO boundaries — externalize |
+| **Safety Taxonomy** | `phoenix/coding_reference/AI_BREAKTHROUGHS_SAFETY_TAXONOMY.md` | Import path IS the safety contract |
+| **Naming Is Instruction** | `phoenix/coding_reference/AI_BREAKTHROUGHS_NAMING_IS_INSTRUCTION.md` | Names overpower instructions 200:1 |
+| **Economic Model** | `phoenix/coding_reference/AI_BREAKTHROUGHS_ECONOMIC_MODEL.md` | Gleipnir makes bad patterns expensive |
+| **Context Exhaustion** | `phoenix/coding_reference/AI_BREAKTHROUGHS_CONTEXT_EXHAUSTION.md` | Overconfidence + pattern matching = errors |
+| **Workspace SOP** | `documentation/operations/STANDARD_OPERATING_PROCEDURES.md` | Script standards, schema validation rules |
+
+---
+
+## MANDATORY: Run Guardrails Frequently
+
+```
+uv run pytest tests/test_guardrails.py
+```
+
+Run after EVERY significant change. Not after finishing a phase. After every file. Architectural debt compounds silently.
+
+---
+
+## Context Reminders for Long Sessions
+
+After ANY compaction, ask yourself:
+
+1. **Do gates handle IO?** YES. Python never reads or writes files. Gates read TOML, return JSON. Gates take JSON, write TOML. If you're writing `Path.read_text()`, STOP.
+
+2. **Are steps named by level?** `level{N}_{branch}_{operation}.py`. Not `step_01`. Same level = parallel. If you're numbering sequentially, STOP.
+
+3. **Are gates named by checkpoint?** `gate_{checkpoint}_{direction}`. Not by branch. If a gate name contains a branch name, STOP.
+
+4. **Is the work function pure?** It receives JSON from a gate, returns JSON for a gate. Inside it parses to Pydantic models, calls pure functions, serializes. The only impurity allowed is include file loading for content reducers.
+
+5. **Do my functions do more than one thing?** Run guardrails NOW.
+
+6. **Am I reaching for `dict`?** This is a CANARY. We pass typed Pydantic models everywhere.
+
+7. **Am I confused about the branches?** Content branch (levels 3-5) and permissions branch (level 3) are independent until level 6. After level 7, vendor resolvers fan out. Read DAG_EXPLAINED.md.
+
+---
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- EVERYTHING ABOVE THIS LINE IS BEHAVIORAL (human-maintained, empirical) -->
+<!-- EVERYTHING BELOW THIS LINE IS DYNAMIC ORIENTATION (agent-regenerated)  -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+---
+
+## Dynamic Orientation
+
+@./CONTEXT_MAP.md

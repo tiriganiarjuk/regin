@@ -1,0 +1,41 @@
+# Deployed Nornir writer tools.
+#
+# TODO: Auto-generate this file from Nornir writer configs on rebuild.
+# Currently hand-maintained from existing writers.
+#
+# Match keys: output_format, write_frequency, schema_path, file_path/directory_path
+# Agent-owned: batch_size (not in registry)
+
+[[tools]]
+binary_name = "append_truth_qc_report_record"
+output_format = "jsonl"
+write_frequency = "record"
+output_path_kind = "fixed_file"
+schema_path = "/Users/johnny/.ai/spaces/bragi/schemas/qc-report.schema.json"
+file_path = "/Users/johnny/.ai/spaces/bragi/truth/qc_semantic_report.jsonl"
+
+[[tools]]
+binary_name = "write_truth_glossary_record"
+output_format = "json"
+write_frequency = "record"
+output_path_kind = "directory_name"
+schema_path = "/Users/johnny/.ai/spaces/bragi/schemas/glossary.schema.json"
+directory_path = "/Users/johnny/.ai/spaces/bragi/truth/quarantine"
+name_extension = "json"
+
+[[tools]]
+binary_name = "append_embedding_normalize_batch_20"
+output_format = "jsonl"
+write_frequency = "batch"
+output_path_kind = "fixed_file"
+schema_path = "/Users/johnny/.ai/spaces/bragi/definitions/schemas/embedding-target.schema.json"
+file_path = "/Users/johnny/.ai/spaces/bragi/interview/embedding_format/normalized.jsonl"
+
+[[tools]]
+binary_name = "append_interview_summaries_record"
+output_format = "jsonl"
+write_frequency = "record"
+output_path_kind = "directory_prefix"
+schema_path = "/Users/johnny/.ai/spaces/bragi/schemas/summaries.schema.json"
+directory_path = "/Users/johnny/.ai/spaces/bragi/interview/interviews"
+name_suffix = ".summaries.jsonl"
