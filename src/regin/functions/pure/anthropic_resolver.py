@@ -140,7 +140,7 @@ def build_tool_hook_rules(
         HookAction(
             matcher=tool_name,
             type="command",
-            binary="hook_validate_tools",
+            binary="hook_intercept_subagent_tool",
             arguments=HookArguments(root=sorted(paths)),
         )
         for tool_name, paths in sorted(merged_tools.items())
@@ -163,7 +163,7 @@ def build_bash_hook_rule(
     return HookAction(
         matcher="Bash",
         type="command",
-        binary="hook_validate_bash",
+        binary="hook_intercept_subagent_bash",
         arguments=HookArguments(root=all_paths),
     )
 
