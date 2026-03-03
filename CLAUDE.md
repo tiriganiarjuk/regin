@@ -12,7 +12,7 @@ After compaction, you have step names and a DAG shape but lose the gate IO model
 - Put IO (file reads/writes) inside Python code when gates handle all IO
 - Used `dict[str, Any]` instead of frozen Pydantic models
 - Built ad-hoc Python validation instead of using JSON Schema — a SESSION-TERMINATING violation
-- Written monolithic functions exceeding Gleipnir's 50-line limit
+- Written monolithic functions that gleipnir flags for doing too many things
 - Confused the content branch (levels 3-5) with the permissions branch (level 3) — they are independent until level 6
 - Created separate `loaders.py` and `writers.py` when gates handle IO directly
 
@@ -55,8 +55,8 @@ None of them felt uncertain while doing it.
 **Recovery:** Read DAG_EXPLAINED.md "The Levels"
 
 ### Exceeding Gleipnir Constraints Then Suppressing
-**Detection:** If you add `# type: ignore`, expand quarantine lists, or think "this function needs more than 50 lines"...
-**Why it's wrong:** Gleipnir makes bad patterns expensive. If you can't fit in 50 lines, the function does too many things. Find the functional primitive.
+**Detection:** If you add `# type: ignore`, expand quarantine lists, or think "this function needs to be longer"...
+**Why it's wrong:** Gleipnir makes bad patterns expensive. If a function triggers a length violation, it does too many things. Find the functional primitive.
 **Recovery:** Re-read `~/.ai/phoenix/coding_reference/AI_BREAKTHROUGHS_HEMINGWAY_CODING.md`
 
 ### Modifying Generated Structure Files

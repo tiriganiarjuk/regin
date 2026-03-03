@@ -44,7 +44,7 @@ Read `CLAUDE.md` in this directory before writing any code. It documents 7 speci
 
 6. **Do NOT edit generated structure files.** Files in `structures/` that are listed in `generate_structures.py`'s `SCHEMA_MODULES` dict are generated from JSON Schemas. Edit the Verdandi YAML source, run Draupnir, then run `generate_structures.py`.
 
-7. **Do NOT exceed Gleipnir constraints.** Max 50 lines per function, max 5 params, max 4 nesting depth. If you cannot fit, the function does too many things.
+7. **Do NOT exceed Gleipnir constraints.** Each function does one thing. If gleipnir flags a violation, the function does too much — decompose, don't compress.
 
 ---
 

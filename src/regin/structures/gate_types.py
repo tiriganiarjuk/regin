@@ -1,11 +1,13 @@
-"""Typed wrappers for Nornir gate responses."""
+"""Typed wrappers for Nornir gate return values.
+
+Gates return {"ok": bool, "data": str | None, "error": {"type": str, "message": str} | None}.
+These models make that shape explicit and frozen.
+"""
 
 from pydantic import BaseModel, ConfigDict
 
 
 class GateError(BaseModel):
-    """Error detail from a failed gate validation."""
-
     model_config = ConfigDict(frozen=True)
 
     type: str
@@ -13,8 +15,6 @@ class GateError(BaseModel):
 
 
 class GateResult(BaseModel):
-    """Response from a Nornir gate validate() call."""
-
     model_config = ConfigDict(frozen=True)
 
     ok: bool

@@ -1,0 +1,26 @@
+# Schema-to-module mappings for generate_structures.py
+# Add new entries when schemas are added to verdandi/agent-builder/
+
+[checkpoint]
+agent-raw-definition = "raw_definition"
+agent-paths-resolved = "paths_resolved"
+agent-instructions-reduced = "instructions_reduced"
+agent-examples-reduced = "examples_reduced"
+agent-guardrails-reduced = "guardrails_reduced"
+agent-success-reduced = "success_reduced"
+agent-execution-merged = "execution_merged"
+agent-criteria-merged = "criteria_merged"
+agent-includes-merged = "includes_merged"
+agent-permissions-resolved = "permissions_resolved"
+agent-universal-format = "universal_format"
+agent-universal-render = "universal_render"
+agent-anthropic-render = "anthropic_render"
+
+[include]
+include-execution-instructions = "include_execution_instructions"
+include-example-entries = "include_example_entries"
+include-example-group = "include_example_group"
+include-success-criteria = "include_success_criteria"
+include-failure-criteria = "include_failure_criteria"
+include-guardrails-constraints = "include_guardrails_constraints"
+include-guardrails-anti-patterns = "include_guardrails_anti_patterns"
