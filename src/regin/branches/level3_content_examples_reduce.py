@@ -14,8 +14,8 @@ from regin.functions.impure.include_resolve import (
     resolve_example_group_include,
 )
 from regin.functions.impure.model_mutate import walk_find_replace
-from regin.structures.examples_reduced import AgentExamplesReduced
-from regin.structures.paths_resolved import (
+from regin.structures.schema.agent_examples_reduced import AgentExamplesReduced
+from regin.structures.schema.agent_paths_resolved import (
     AgentPathsResolved,
     IncludeExample,
     IncludeExampleGroup,

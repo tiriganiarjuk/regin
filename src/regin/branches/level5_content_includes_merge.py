@@ -10,9 +10,9 @@ Delta:    Left has resolved execution (instructions + examples), right has resol
 from pathlib import Path
 
 from regin.functions.impure.gates import call_input_gate, call_output_gate
-from regin.structures.criteria_merged import AgentCriteriaMerged
-from regin.structures.execution_merged import AgentExecutionMerged, Criteria
-from regin.structures.includes_merged import AgentIncludesMerged
+from regin.structures.schema.agent_criteria_merged import AgentCriteriaMerged
+from regin.structures.schema.agent_execution_merged import AgentExecutionMerged, Criteria
+from regin.structures.schema.agent_includes_merged import AgentIncludesMerged
 
 
 def run(left_path: Path, right_path: Path, output_path: Path) -> str:

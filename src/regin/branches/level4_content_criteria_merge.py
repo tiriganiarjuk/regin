@@ -9,13 +9,13 @@ Delta:    Left has resolved guardrails, right has resolved success/failure.
 from pathlib import Path
 
 from regin.functions.impure.gates import call_input_gate, call_output_gate
-from regin.structures.criteria_merged import AgentCriteriaMerged
-from regin.structures.guardrails_reduced import (
+from regin.structures.schema.agent_criteria_merged import AgentCriteriaMerged
+from regin.structures.schema.agent_guardrails_reduced import (
     AgentGuardrailsReduced,
     FailureCriteria,
     SuccessCriteria,
 )
-from regin.structures.success_reduced import AgentSuccessReduced
+from regin.structures.schema.agent_success_reduced import AgentSuccessReduced
 
 
 def run(left_path: Path, right_path: Path, output_path: Path) -> str:

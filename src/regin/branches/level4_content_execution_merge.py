@@ -9,9 +9,9 @@ Delta:    Left has resolved instructions, right has resolved examples.
 from pathlib import Path
 
 from regin.functions.impure.gates import call_input_gate, call_output_gate
-from regin.structures.examples_reduced import AgentExamplesReduced
-from regin.structures.execution_merged import AgentExecutionMerged
-from regin.structures.instructions_reduced import (
+from regin.structures.schema.agent_examples_reduced import AgentExamplesReduced
+from regin.structures.schema.agent_execution_merged import AgentExecutionMerged
+from regin.structures.schema.agent_instructions_reduced import (
     AgentInstructionsReduced,
     ExecutionExamples,
 )

@@ -12,8 +12,8 @@ from pathlib import Path
 from regin.functions.impure.gates import call_input_gate, call_output_gate
 from regin.functions.impure.include_resolve import resolve_instruction_include
 from regin.functions.impure.model_mutate import walk_find_replace
-from regin.structures.instructions_reduced import AgentInstructionsReduced
-from regin.structures.paths_resolved import AgentPathsResolved, IncludeInstruction
+from regin.structures.schema.agent_instructions_reduced import AgentInstructionsReduced
+from regin.structures.schema.agent_paths_resolved import AgentPathsResolved, IncludeInstruction
 
 
 def run(input_path: Path, output_path: Path) -> str:

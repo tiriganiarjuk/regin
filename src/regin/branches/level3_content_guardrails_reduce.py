@@ -14,8 +14,8 @@ from regin.functions.impure.include_resolve import (
     resolve_guardrails_constraints_include,
 )
 from regin.functions.impure.model_mutate import walk_find_replace
-from regin.structures.guardrails_reduced import AgentGuardrailsReduced
-from regin.structures.paths_resolved import (
+from regin.structures.schema.agent_guardrails_reduced import AgentGuardrailsReduced
+from regin.structures.schema.agent_paths_resolved import (
     AgentPathsResolved,
     IncludeGuardrailsAntiPatterns,
     IncludeGuardrailsConstraints,

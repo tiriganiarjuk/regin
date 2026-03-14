@@ -8,7 +8,7 @@
 """Generate Pydantic models from JSON Schema files.
 
 Reads schema mappings from codegen_schemas.toml, fetches schemas from
-verdandi/agent-builder/output/, and writes model modules to structures/.
+smidja/verdandi/agent-builder/output/, and writes model modules to structures/.
 
 Run after Draupnir regenerates schemas to keep models in sync.
 """
@@ -22,7 +22,8 @@ from regin.functions.pure.codegen_transforms import apply_all_transforms
 
 PACKAGE_ROOT = Path(__file__).resolve().parent
 WORKSPACE = PACKAGE_ROOT.parents[3]
-SCHEMAS_DIR = WORKSPACE / "tools" / "verdandi" / "agent-builder" / "output"
+SMIDJA = Path.home() / ".ai" / "smidja"
+SCHEMAS_DIR = SMIDJA / "verdandi" / "agent-builder" / "output"
 STRUCTURES_DIR = PACKAGE_ROOT / "structures"
 CONFIG_PATH = PACKAGE_ROOT / "codegen_schemas.toml"
 

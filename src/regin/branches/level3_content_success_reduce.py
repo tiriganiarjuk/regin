@@ -14,12 +14,12 @@ from regin.functions.impure.include_resolve import (
     resolve_success_criteria_include,
 )
 from regin.functions.impure.model_mutate import walk_find_replace
-from regin.structures.paths_resolved import (
+from regin.structures.schema.agent_paths_resolved import (
     AgentPathsResolved,
     IncludeFailureCriteria,
     IncludeSuccessCriteria,
 )
-from regin.structures.success_reduced import AgentSuccessReduced
+from regin.structures.schema.agent_success_reduced import AgentSuccessReduced
 
 
 def run(input_path: Path, output_path: Path) -> str:

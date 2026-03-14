@@ -15,12 +15,8 @@ regin = "regin.cli:main"
 [dependency-groups]
 dev = [
     "pytest>=8.0",
-    "gleipnir",
     "datamodel-code-generator>=0.26",
 ]
-
-[tool.uv.sources]
-gleipnir = { path = "/Users/johnny/.ai/gleipnir", editable = true }
 
 [build-system]
 requires = ["hatchling"]

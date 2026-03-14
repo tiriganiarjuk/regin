@@ -19,28 +19,28 @@ from pathlib import Path
 from regin.functions.impure.gates import call_input_gate
 from regin.functions.impure.model_mutate import replace_found, splice_found
 from regin.structures.found_item import FoundItem
-from regin.structures.include_example_entries import (
+from regin.structures.fragment.example_entries import (
     ExampleEntries as IncludeExampleEntriesModel,
 )
-from regin.structures.include_example_group import (
+from regin.structures.fragment.example_group import (
     ExampleGroup as IncludeExampleGroupModel,
 )
-from regin.structures.include_execution_instructions import (
+from regin.structures.fragment.execution_instructions import (
     ExecutionInstructions as IncludeInstructionsModel,
 )
-from regin.structures.include_failure_criteria import (
+from regin.structures.fragment.failure_criteria import (
     FailureCriteria as IncludeFailureModel,
 )
-from regin.structures.include_guardrails_anti_patterns import (
+from regin.structures.fragment.guardrails_anti_patterns import (
     GuardrailsAntiPatterns as IncludeAntiPatternsModel,
 )
-from regin.structures.include_guardrails_constraints import (
+from regin.structures.fragment.guardrails_constraints import (
     GuardrailsConstraints as IncludeConstraintsModel,
 )
-from regin.structures.include_success_criteria import (
+from regin.structures.fragment.success_criteria import (
     SuccessCriteria as IncludeSuccessModel,
 )
-from regin.structures.paths_resolved import (
+from regin.structures.schema.agent_paths_resolved import (
     ExampleEntry,
     ExampleGroup,
     FailureItem,

@@ -10,8 +10,8 @@ Delta:    Narrow path unions to absolute-only. Pydantic BeforeValidator on
 from pathlib import Path
 
 from regin.functions.impure.gates import call_input_gate, call_output_gate
-from regin.structures.paths_resolved import AgentPathsResolved
-from regin.structures.raw_definition import AgentRawDefinition
+from regin.structures.schema.agent_paths_resolved import AgentPathsResolved
+from regin.structures.schema.agent_raw_definition import AgentRawDefinition
 
 
 def run(input_path: Path, output_path: Path) -> str:
