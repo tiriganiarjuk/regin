@@ -29,6 +29,7 @@ class ToolRegistryEntry(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     binary_name: str
+    invocation: str
     output_format: OutputFormat
     write_frequency: WriteFrequency
     output_path_kind: OutputPathKind

@@ -21,6 +21,6 @@ def run(input_path: Path, output_path: Path) -> str:
     json_in = call_input_gate("gate_universal_format_input", input_path)
     source = AgentUniversalFormat.model_validate_json(json_in)
     result = regroup(source)
-    json_out = result.model_dump_json(by_alias=True, exclude_none=True)
+    json_out = result.model_dump_json(by_alias=True, exclude_unset=True, exclude_none=True)
     call_output_gate("gate_universal_render_output", json_out, output_path)
     return json_out

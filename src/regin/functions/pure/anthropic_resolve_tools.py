@@ -27,13 +27,6 @@ def matches_registry(spec: WritingOutput, entry: ToolRegistryEntry) -> bool:
     return True
 
 
-def compose_invocation(binary_name: str, name_needed: bool) -> str:
-    """Compose the bash heredoc invocation display."""
-    if name_needed:
-        return f"cat <<'EOF' | {binary_name} --name {{name}}\n{{json_data}}\nEOF"
-    return f"cat <<'EOF' | {binary_name}\n{{json_data}}\nEOF"
-
-
 def discover_tool(
     writing_output: WritingOutput | None,
     registry: list[ToolRegistryEntry],
@@ -43,14 +36,11 @@ def discover_tool(
         return None
     for entry in registry:
         if matches_registry(writing_output, entry):
-            name_needed = (
-                writing_output.writing_output.output_tool_name_needed is not None
-                and writing_output.writing_output.output_tool_name_needed.root.root is True
-            )
+            name_needed = entry.output_path_kind.value != "fixed_file"
             variant = "with-name" if name_needed else "no-name"
             return ResolvedTool(
                 tool_name=entry.binary_name,
                 invocation_variant=variant,
-                invocation_display=compose_invocation(entry.binary_name, name_needed),
+                invocation_display=entry.invocation,
             )
     return None

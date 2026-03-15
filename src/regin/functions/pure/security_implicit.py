@@ -68,7 +68,7 @@ def derive_implicit_grants(security: Security) -> EnforcementImplicitGrants:
     reads = (
         collect_io_reads(security.security_io, workspace_name)
         | collect_schema_reads(security.security_schema)
-        | collect_context_reads(security.context)
+        | (collect_context_reads(security.context) if security.context else set())
     )
     writes = collect_implicit_writes(security.security_io, workspace_name)
     raw_grants: dict[str, set[str]] = {}

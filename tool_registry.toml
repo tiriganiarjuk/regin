@@ -8,6 +8,7 @@
 
 [[tools]]
 binary_name = "append_truth_qc_report_record"
+invocation = "append_truth_qc_report_record <<'EOF'\n{json_data}\nEOF"
 output_format = "jsonl"
 write_frequency = "record"
 output_path_kind = "fixed_file"
@@ -16,6 +17,7 @@ file_path = "/Users/johnny/.ai/spaces/bragi/truth/qc_semantic_report.jsonl"
 
 [[tools]]
 binary_name = "write_truth_glossary_record"
+invocation = "write_truth_glossary_record {name} <<'EOF'\n{json_data}\nEOF"
 output_format = "json"
 write_frequency = "record"
 output_path_kind = "directory_name"
@@ -25,6 +27,7 @@ name_extension = "json"
 
 [[tools]]
 binary_name = "append_embedding_normalize_batch_20"
+invocation = "append_embedding_normalize_batch_20 <<'EOF'\n{json_data}\nEOF"
 output_format = "jsonl"
 write_frequency = "batch"
 output_path_kind = "fixed_file"
@@ -33,6 +36,7 @@ file_path = "/Users/johnny/.ai/spaces/bragi/interview/embedding_format/normalize
 
 [[tools]]
 binary_name = "append_interview_summaries_record"
+invocation = "append_interview_summaries_record {name} <<'EOF'\n{json_data}\nEOF"
 output_format = "jsonl"
 write_frequency = "record"
 output_path_kind = "directory_prefix"

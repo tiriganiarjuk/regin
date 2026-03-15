@@ -19,10 +19,10 @@ def run(input_path: Path, output_path: Path) -> str:
     json_in = call_input_gate("gate_raw_definition_input", input_path)
     raw = AgentRawDefinition.model_validate_json(json_in)
     workspace = raw.security.security_paths.paths_workspace.root
-    json_raw = raw.model_dump_json(by_alias=True, exclude_none=True)
+    json_raw = raw.model_dump_json(by_alias=True, exclude_unset=True, exclude_none=True)
     resolved = AgentPathsResolved.model_validate_json(
         json_raw, context={"workspace": workspace}
     )
-    json_out = resolved.model_dump_json(by_alias=True, exclude_none=True)
+    json_out = resolved.model_dump_json(by_alias=True, exclude_unset=True, exclude_none=True)
     call_output_gate("gate_paths_resolved_output", json_out, output_path)
     return json_out

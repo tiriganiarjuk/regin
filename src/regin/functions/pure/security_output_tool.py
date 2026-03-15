@@ -40,7 +40,7 @@ def assemble_output_tool(
         output_tool_format=tool_format,
         output_tool_schema_path=schema_path.root if schema_path else None,
         output_tool_write_frequency=WriteFrequency(write_freq.value) if write_freq else None,
-        output_tool_batch_size=Integer(processing.output_batch_size.root) if write_freq and processing.output_batch_size else None,
+        output_tool_batch_size=Integer(processing.output_batch_size.root) if write_freq and write_freq.value == "batch" and processing.output_batch_size else None,
         output_tool_file_path=output_file.root if output_file and name_known == OutputFileNameKnown.known else None,
         output_tool_directory_path=output_directory.root if output_directory else None,
         output_tool_name_needed=Boolean(True) if name_known in (OutputFileNameKnown.partially, OutputFileNameKnown.unknown) else None,

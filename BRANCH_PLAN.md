@@ -352,14 +352,14 @@ The ONE string L8 composes. Two variants:
 
 **no-name** (fixed file path):
 ```
-cat <<'EOF' | {tool_name}
+{tool_name} <<'EOF'
 {json_data}
 EOF
 ```
 
 **with-name** (agent provides filename):
 ```
-cat <<'EOF' | {tool_name} --name {name_placeholder}
+{tool_name} {name_placeholder} <<'EOF'
 {json_data}
 EOF
 ```

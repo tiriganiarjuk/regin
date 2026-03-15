@@ -76,7 +76,7 @@ def compose_critical_rules(
         tool_name = anthr.ToolName(anthr.SnakeString(resolved_tool.tool_name))
         if spec.output_tool_name_needed is not None:
             name_needed = anthr.OutputToolNameNeeded(
-                anthr.Boolean(spec.output_tool_name_needed.root.root)
+                anthr.Boolean(spec.output_tool_name_needed.root)
             )
         if spec.output_tool_batch_size is not None:
             batch_size = anthr.OutputToolBatchSize(
@@ -130,7 +130,7 @@ def compose_writing_output(
     spec = writing_output.writing_output
     name_needed = (
         spec.output_tool_name_needed is not None
-        and spec.output_tool_name_needed.root.root is True
+        and spec.output_tool_name_needed.root is True
     )
     fields = map_enforcement_fields(spec)
 

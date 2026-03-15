@@ -15,7 +15,7 @@ def regroup_input(source: AgentUniversalFormat) -> render.Input:
     dispatch = source.indirect.dispatch
     schema = source.security.security_schema
     context = source.security.context
-    has_context = context.context_required or context.context_available
+    has_context = context and (context.context_required or context.context_available)
     return render.Input(
         description=render.InputDescription(dispatch.dispatch_input_description.root),
         format=render.DispatchInputFormat(dispatch.dispatch_input_format.value),

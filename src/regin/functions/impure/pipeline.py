@@ -8,6 +8,7 @@ from pathlib import Path
 from loguru import logger
 
 from regin.branches import (
+    level0_defaults_inject,
     level1_paths_resolve,
     level2_paths_verify,
     level3_content_examples_reduce,
@@ -24,6 +25,7 @@ from regin.branches import (
 )
 
 CHECKPOINT_NAMES = (
+    "raw_definition_defaulted",
     "paths_resolved",
     "paths_verified",
     "instructions_reduced",
@@ -50,8 +52,11 @@ def run_pipeline(input_path: Path, output_dir: Path) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
     cp = lambda name: checkpoint(output_dir, name)
 
+    logger.info("L0 defaults_inject")
+    level0_defaults_inject.run(input_path, cp("raw_definition_defaulted"))
+
     logger.info("L1 paths_resolve")
-    level1_paths_resolve.run(input_path, cp("paths_resolved"))
+    level1_paths_resolve.run(cp("raw_definition_defaulted"), cp("paths_resolved"))
 
     logger.info("L2 paths_verify")
     level2_paths_verify.run(cp("paths_resolved"), cp("paths_verified"))

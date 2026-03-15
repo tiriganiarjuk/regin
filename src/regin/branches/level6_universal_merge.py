@@ -31,8 +31,8 @@ def run(left_path: Path, right_path: Path, output_path: Path) -> str:
     left.criteria = Criteria.model_validate_json(
         right.criteria.model_dump_json(by_alias=True)
     )
-    json_mutated = left.model_dump_json(by_alias=True, exclude_none=True)
+    json_mutated = left.model_dump_json(by_alias=True, exclude_unset=True, exclude_none=True)
     merged = AgentUniversalFormat.model_validate_json(json_mutated)
-    json_out = merged.model_dump_json(by_alias=True, exclude_none=True)
+    json_out = merged.model_dump_json(by_alias=True, exclude_unset=True, exclude_none=True)
     call_output_gate("gate_universal_format_output", json_out, output_path)
     return json_out

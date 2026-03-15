@@ -40,13 +40,13 @@ def run(input_path: Path, output_path: Path) -> str:
         enforcement_output_tool=assemble_output_tool(model.security, model.task.processing),
     )
     resolved = AgentPermissionsResolved(
-        indirect=Indirect.model_validate_json(model.indirect.model_dump_json(by_alias=True)),
-        task=Task.model_validate_json(model.task.model_dump_json(by_alias=True)),
-        security=Security.model_validate_json(model.security.model_dump_json(by_alias=True)),
-        execution=Execution.model_validate_json(model.execution.model_dump_json(by_alias=True)),
-        criteria=Criteria.model_validate_json(model.criteria.model_dump_json(by_alias=True)),
+        indirect=Indirect.model_validate_json(model.indirect.model_dump_json(by_alias=True, exclude_unset=True, exclude_none=True)),
+        task=Task.model_validate_json(model.task.model_dump_json(by_alias=True, exclude_unset=True, exclude_none=True)),
+        security=Security.model_validate_json(model.security.model_dump_json(by_alias=True, exclude_unset=True, exclude_none=True)),
+        execution=Execution.model_validate_json(model.execution.model_dump_json(by_alias=True, exclude_unset=True, exclude_none=True)),
+        criteria=Criteria.model_validate_json(model.criteria.model_dump_json(by_alias=True, exclude_unset=True, exclude_none=True)),
         enforcement=enforcement,
     )
-    json_out = resolved.model_dump_json(by_alias=True, exclude_none=True)
+    json_out = resolved.model_dump_json(by_alias=True, exclude_unset=True, exclude_none=True)
     call_output_gate("gate_permissions_resolved_output", json_out, output_path)
     return json_out

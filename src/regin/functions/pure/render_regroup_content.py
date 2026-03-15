@@ -9,7 +9,7 @@ return_format: how the agent reports results + success/failure criteria.
 Pure — receives typed model, returns typed model. No IO.
 """
 
-from regin.structures.schema.agent_universal_format import AgentUniversalFormat
+from regin.structures.schema.agent_universal_format import AgentUniversalFormat, StringProse
 from regin.structures.schema import agent_universal_render as render
 
 
@@ -55,15 +55,28 @@ def regroup_anti_patterns(source: AgentUniversalFormat) -> render.AntiPatterns |
     )
 
 
+def guard_return_field(
+    mode: str, allowed_modes: set[str], field: StringProse | None,
+) -> StringProse | None:
+    """Return field value only when return_mode is in allowed set."""
+    if mode not in allowed_modes or field is None:
+        return None
+    return field
+
+
 def regroup_return_format(source: AgentUniversalFormat) -> render.ReturnFormat:
     """Assemble return format from task.return + security.schema + criteria."""
     ret = source.task.return_
+    mode = ret.return_mode.value
     schema = source.security.security_schema
+    status = guard_return_field(mode, {"status", "status-metrics"}, ret.return_status)
+    metrics = guard_return_field(mode, {"status-metrics", "metrics-output"}, ret.return_metrics)
+    output = guard_return_field(mode, {"metrics-output", "output"}, ret.return_output)
     return render.ReturnFormat(
-        mode=render.ReturnMode(ret.return_mode.value),
-        status_instruction=render.StringProse(ret.return_status.root) if ret.return_status else None,
-        metrics_instruction=render.StringProse(ret.return_metrics.root) if ret.return_metrics else None,
-        output_instruction=render.StringProse(ret.return_output.root) if ret.return_output else None,
+        mode=render.ReturnMode(mode),
+        status_instruction=render.StringProse(status.root) if status else None,
+        metrics_instruction=render.StringProse(metrics.root) if metrics else None,
+        output_instruction=render.StringProse(output.root) if output else None,
         return_schema=render.PathExistsAbsolute(schema.return_schema.root) if schema.return_schema else None,
         success_criteria=render.SuccessCriteria.model_validate_json(
             source.criteria.success_criteria.model_dump_json(by_alias=True)

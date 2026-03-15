@@ -25,8 +25,8 @@ def run(input_path: Path, output_path: Path) -> str:
         IncludeInstruction,
         resolve_instruction_include,
     )
-    json_mutated = definition.model_dump_json(by_alias=True, exclude_none=True)
+    json_mutated = definition.model_dump_json(by_alias=True, exclude_unset=True, exclude_none=True)
     reduced = AgentInstructionsReduced.model_validate_json(json_mutated)
-    json_out = reduced.model_dump_json(by_alias=True, exclude_none=True)
+    json_out = reduced.model_dump_json(by_alias=True, exclude_unset=True, exclude_none=True)
     call_output_gate("gate_instructions_reduced_output", json_out, output_path)
     return json_out
