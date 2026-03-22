@@ -12,8 +12,10 @@ from regin.functions.pure.render_regroup_content import (
     regroup_anti_patterns,
     regroup_constraints,
     regroup_examples,
+    regroup_failure_criteria,
     regroup_instructions,
     regroup_return_format,
+    regroup_success_criteria,
 )
 from regin.functions.pure.render_regroup_identity import (
     regroup_dispatcher,
@@ -39,6 +41,8 @@ def regroup(source: AgentUniversalFormat) -> render.AgentUniversalRender:
         constraints=regroup_constraints(source),
         anti_patterns=regroup_anti_patterns(source),
         return_format=regroup_return_format(source),
+        success_criteria=regroup_success_criteria(source),
+        failure_criteria=regroup_failure_criteria(source),
         dispatcher=regroup_dispatcher(source),
         instructions=regroup_instructions(source),
         examples=regroup_examples(source),

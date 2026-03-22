@@ -4,7 +4,9 @@ instructions: ordered processing steps.
 examples: example groups for the agent.
 constraints: MUST/NEVER rules from guardrails.
 anti_patterns: known failure patterns from guardrails.
-return_format: how the agent reports results + success/failure criteria.
+return_format: how the agent reports results.
+success_criteria: standalone success criteria section.
+failure_criteria: standalone failure criteria section.
 
 Pure — receives typed model, returns typed model. No IO.
 """
@@ -78,10 +80,28 @@ def regroup_return_format(source: AgentUniversalFormat) -> render.ReturnFormat:
         metrics_instruction=render.StringProse(metrics.root) if metrics else None,
         output_instruction=render.StringProse(output.root) if output else None,
         return_schema=render.PathExistsAbsolute(schema.return_schema.root) if schema.return_schema else None,
-        success_criteria=render.SuccessCriteria.model_validate_json(
-            source.criteria.success_criteria.model_dump_json(by_alias=True)
+    )
+
+
+def regroup_success_criteria(source: AgentUniversalFormat) -> render.SuccessCriteria | None:
+    """Wrap success criteria. None when no criteria defined."""
+    criteria = source.criteria.success_criteria
+    if criteria is None:
+        return None
+    return render.SuccessCriteria(
+        criteria=render.SuccessCriteria1.model_validate_json(
+            criteria.model_dump_json(by_alias=True)
         ),
-        failure_criteria=render.FailureCriteria.model_validate_json(
-            source.criteria.failure_criteria.model_dump_json(by_alias=True)
+    )
+
+
+def regroup_failure_criteria(source: AgentUniversalFormat) -> render.FailureCriteria | None:
+    """Wrap failure criteria. None when no criteria defined."""
+    criteria = source.criteria.failure_criteria
+    if criteria is None:
+        return None
+    return render.FailureCriteria(
+        criteria=render.FailureCriteria1.model_validate_json(
+            criteria.model_dump_json(by_alias=True)
         ),
     )

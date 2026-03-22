@@ -29,11 +29,13 @@ def compose_identity(
 
 def compose_security_boundary(
     display: anthr.DisplayEntries | None,
-) -> anthr.SecurityBoundaryAnthropic | None:
-    """Security boundary with display entries only. Null when no grants."""
-    if display is None:
-        return None
-    return anthr.SecurityBoundaryAnthropic(display=display)
+    workspace_path: str,
+) -> anthr.SecurityBoundaryAnthropic:
+    """Security boundary with display entries and workspace path."""
+    return anthr.SecurityBoundaryAnthropic(
+        workspace_path=anthr.PathExistsAbsolute(workspace_path),
+        display=display,
+    )
 
 
 def compose_frontmatter(
@@ -61,11 +63,10 @@ def compose_frontmatter(
 
 
 def compose_critical_rules(
-    workspace_path: str,
     resolved_tool: ResolvedTool | None,
     writing_output: render.WritingOutput | None,
 ) -> anthr.CriticalRules:
-    """Compose critical rules from workspace path and tool resolution."""
+    """Compose critical rules from tool resolution."""
     has_tool = resolved_tool is not None
     tool_name = None
     name_needed = None
@@ -84,7 +85,6 @@ def compose_critical_rules(
             )
 
     return anthr.CriticalRules(
-        workspace_path=anthr.PathExistsAbsolute(workspace_path),
         has_output_tool=anthr.Boolean(has_tool),
         tool_name=tool_name,
         name_needed=name_needed,

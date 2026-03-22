@@ -82,16 +82,18 @@ def resolve_anthropic(
 
     return anthr.AgentAnthropicRender(
         identity=identity,
-        security_boundary=compose_security_boundary(display),
+        security_boundary=compose_security_boundary(display, workspace_path),
         input=pass_through_section(source.input, anthr.Input),
         output=pass_through_section(source.output, anthr.Output),
         writing_output=compose_writing_output(resolved_tool, source.writing_output),
         constraints=pass_through_nullable(source.constraints, anthr.Constraints),
         anti_patterns=pass_through_nullable(source.anti_patterns, anthr.AntiPatterns),
+        success_criteria=pass_through_nullable(source.success_criteria, anthr.SuccessCriteria),
+        failure_criteria=pass_through_nullable(source.failure_criteria, anthr.FailureCriteria),
         return_format=pass_through_section(source.return_format, anthr.ReturnFormat),
         dispatcher=pass_through_section(source.dispatcher, anthr.Dispatcher),
         instructions=pass_through_section(source.instructions, anthr.Instructions),
         examples=pass_through_nullable(source.examples, anthr.Examples),
-        critical_rules=compose_critical_rules(workspace_path, resolved_tool, source.writing_output),
+        critical_rules=compose_critical_rules(resolved_tool, source.writing_output),
         frontmatter=compose_frontmatter(identity, model, hooks, merged_tools),
     )
