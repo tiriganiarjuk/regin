@@ -18,13 +18,14 @@ import sys
 import tomllib
 from pathlib import Path
 
-from regin.functions.pure.codegen_transforms import apply_all_transforms
+from regin.logic.transform.codegen_clean.composed import strip_redundant_constraints
+from regin.logic.transform.codegen_clean.primitive import strip_future_annotations
 
 PACKAGE_ROOT = Path(__file__).resolve().parent
 WORKSPACE = PACKAGE_ROOT.parents[3]
 SMIDJA = Path.home() / ".ai" / "smidja"
 SCHEMAS_DIR = SMIDJA / "verdandi" / "agent-builder" / "output"
-STRUCTURES_DIR = PACKAGE_ROOT / "structures"
+STRUCTURES_DIR = PACKAGE_ROOT / "structure"
 CONFIG_PATH = PACKAGE_ROOT / "codegen_schemas.toml"
 
 
@@ -63,7 +64,9 @@ def main() -> int:
             continue
 
         content = output_path.read_text()
-        output_path.write_text(apply_all_transforms(content))
+        content = strip_future_annotations(content)
+        content = strip_redundant_constraints(content)
+        output_path.write_text(content)
         sys.stdout.write(f"  {schema_name} -> {module_name}.py\n")
         success += 1
 
