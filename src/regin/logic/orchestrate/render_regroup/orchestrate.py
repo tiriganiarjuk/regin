@@ -1,9 +1,9 @@
-"""Level 7 — Regroup domain sections into consumption sections.
+"""Regroup domain sections into consumption sections.
 
 Gate in:  gate_universal_format_input (reads TOML, returns validated JSON)
 Gate out: gate_universal_render_output (validates JSON, writes TOML)
 Delta:    6 domain sections (indirect, task, security, execution, criteria, enforcement)
-          → 12 consumption sections (identity, security_boundary, implicit_grants,
+          -> 12 consumption sections (identity, security_boundary, implicit_grants,
           input, output, writing_output, constraints, anti_patterns, return_format,
           dispatcher, instructions, examples).
           One derived field: title from agent_name.
@@ -20,7 +20,7 @@ from regin.structure.gen.schema.agent_universal_format import AgentUniversalForm
 
 
 def run(input_path: Path, output_path: Path) -> str:
-    """Execute the L7 render regroup branch. Returns output JSON."""
+    """Execute the render regroup branch. Returns output JSON."""
     json_in = validate_input(gate_universal_format_input, input_path)
     source = AgentUniversalFormat.model_validate_json(json_in)
     result = regroup(source)

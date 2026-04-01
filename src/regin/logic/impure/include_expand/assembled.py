@@ -1,17 +1,14 @@
 """Include expand assembled — concrete resolve callbacks for walk_find_replace.
 
-CC=1-2. Each callback wires a specific gate+model to a generic expand function.
-Imports from simple (within module) and tree_mutate/simple (Assembled->Simple).
+CC=1-3. Each callback gate-loads, bridges to host types, and mutates the tree.
+Imports from simple (within module), tree_mutate/primitive, and tree_mutate/simple.
 
-Seven concrete include resolution callbacks, each wiring a specific gate module
-and Pydantic model type to one of the three generic expansion strategies
-(splice, replace, field). These are the callbacks passed to walk_find_replace
-in the L3 content reducers.
+Seven concrete include resolution callbacks passed to walk_find_replace in
+the L3 content reducers. Each implements one of three mutation strategies:
 
-Each function is named resolve_*_include to mirror the include type it handles.
-The seven include types cover all external content references in the agent
-definition: instructions, example groups, example entries, guardrails
-constraints, guardrails anti-patterns, success criteria, failure criteria.
+  splice:  1:many into a list (instructions, example entries, criteria items)
+  replace: 1:1 substitution (example groups)
+  field:   set inline field + clear include reference (guardrails)
 """
 
 import gate_include_example_entries_input
@@ -22,11 +19,8 @@ import gate_include_guardrails_anti_patterns_input
 import gate_include_guardrails_constraints_input
 import gate_include_success_criteria_input
 
-from regin.logic.impure.include_expand.simple import (
-    expand_field,
-    expand_replace,
-    expand_splice,
-)
+from regin.logic.impure.include_expand.simple import gate_load_include
+from regin.logic.impure.tree_mutate.primitive import splice_found
 from regin.logic.impure.tree_mutate.simple import replace_found
 from regin.structure.model.found_item import FoundItem
 from regin.structure.gen.fragment.example_entries import (
@@ -70,42 +64,59 @@ from regin.structure.gen.schema.agent_paths_resolved import (
 
 def resolve_instruction_include(found: FoundItem[IncludeInstruction]) -> bool:
     """Load instruction include and splice steps into list."""
-    return expand_splice(found, gate_include_execution_instructions_input, IncludeInstructionsModel, InstructionStep)
+    data = gate_load_include(gate_include_execution_instructions_input, found)
+    loaded = IncludeInstructionsModel.model_validate_json(data)
+    host_items = [InstructionStep.model_validate_json(item.model_dump_json()) for item in loaded.items.root]
+    return splice_found(found, host_items)
 
 
 def resolve_example_group_include(found: FoundItem[IncludeExampleGroup]) -> bool:
     """Load example group include and replace 1:1."""
-    return expand_replace(found, gate_include_example_group_input, IncludeExampleGroupModel, ExampleGroup, replace_found)
+    data = gate_load_include(gate_include_example_group_input, found)
+    loaded = IncludeExampleGroupModel.model_validate_json(data)
+    host_value = ExampleGroup.model_validate_json(loaded.model_dump_json())
+    return replace_found(found, host_value)
 
 
 def resolve_example_entry_include(found: FoundItem[IncludeExample]) -> bool:
     """Load example entries include and splice into list."""
-    return expand_splice(found, gate_include_example_entries_input, IncludeExampleEntriesModel, ExampleEntry)
+    data = gate_load_include(gate_include_example_entries_input, found)
+    loaded = IncludeExampleEntriesModel.model_validate_json(data)
+    host_items = [ExampleEntry.model_validate_json(item.model_dump_json()) for item in loaded.items.root]
+    return splice_found(found, host_items)
 
 
 def resolve_guardrails_constraints_include(found: FoundItem[IncludeGuardrailsConstraints]) -> bool:
     """Load guardrails constraints and set inline field."""
-    return expand_field(
-        found, gate_include_guardrails_constraints_input,
-        IncludeConstraintsModel, GuardrailsConstraints,
-        "guardrails_constraints", "include_guardrails_constraints",
-    )
+    data = gate_load_include(gate_include_guardrails_constraints_input, found)
+    loaded = IncludeConstraintsModel.model_validate_json(data)
+    host_data = GuardrailsConstraints.model_validate_json(loaded.items.model_dump_json())
+    setattr(found.parent, "guardrails_constraints", host_data)
+    setattr(found.parent, "include_guardrails_constraints", None)
+    return True
 
 
 def resolve_guardrails_anti_patterns_include(found: FoundItem[IncludeGuardrailsAntiPatterns]) -> bool:
     """Load guardrails anti-patterns and set inline field."""
-    return expand_field(
-        found, gate_include_guardrails_anti_patterns_input,
-        IncludeAntiPatternsModel, GuardrailsAntiPatterns,
-        "guardrails_anti_patterns", "include_guardrails_anti_patterns",
-    )
+    data = gate_load_include(gate_include_guardrails_anti_patterns_input, found)
+    loaded = IncludeAntiPatternsModel.model_validate_json(data)
+    host_data = GuardrailsAntiPatterns.model_validate_json(loaded.items.model_dump_json())
+    setattr(found.parent, "guardrails_anti_patterns", host_data)
+    setattr(found.parent, "include_guardrails_anti_patterns", None)
+    return True
 
 
 def resolve_success_criteria_include(found: FoundItem[IncludeSuccessCriteria]) -> bool:
     """Load success criteria include and splice into list."""
-    return expand_splice(found, gate_include_success_criteria_input, IncludeSuccessModel, SuccessItem)
+    data = gate_load_include(gate_include_success_criteria_input, found)
+    loaded = IncludeSuccessModel.model_validate_json(data)
+    host_items = [SuccessItem.model_validate_json(item.model_dump_json()) for item in loaded.items.root]
+    return splice_found(found, host_items)
 
 
 def resolve_failure_criteria_include(found: FoundItem[IncludeFailureCriteria]) -> bool:
     """Load failure criteria include and splice into list."""
-    return expand_splice(found, gate_include_failure_criteria_input, IncludeFailureModel, FailureItem)
+    data = gate_load_include(gate_include_failure_criteria_input, found)
+    loaded = IncludeFailureModel.model_validate_json(data)
+    host_items = [FailureItem.model_validate_json(item.model_dump_json()) for item in loaded.items.root]
+    return splice_found(found, host_items)

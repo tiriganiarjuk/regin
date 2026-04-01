@@ -1,4 +1,4 @@
-"""Level 3 — Resolve security declarations into enforcement grants.
+"""Resolve security declarations into enforcement grants.
 
 Gate in:  gate_paths_verified_input (reads TOML, returns validated JSON)
 Gate out: gate_permissions_resolved_output (validates JSON, writes TOML)
@@ -36,7 +36,7 @@ from regin.structure.gen.schema.agent_permissions_resolved import (
 
 
 def run(input_path: Path, output_path: Path) -> str:
-    """Execute the L3 permissions resolve branch. Returns output JSON."""
+    """Execute the permissions resolve branch. Returns output JSON."""
     json_in = validate_input(gate_paths_verified_input, input_path)
     model = AgentPathsResolved.model_validate_json(json_in)
     violations = check_blocking(model.security)

@@ -1,4 +1,4 @@
-"""Level 1 — Resolve workspace-relative paths to absolute paths.
+"""Resolve workspace-relative paths to absolute paths.
 
 Gate in:  gate_raw_definition_input (reads raw definition TOML, returns JSON)
 Gate out: gate_paths_resolved_output (validates JSON, writes paths-resolved TOML)
@@ -19,7 +19,7 @@ from regin.structure.gen.schema.agent_raw_definition import AgentRawDefinition
 
 
 def run(input_path: Path, output_path: Path) -> str:
-    """Execute the L1 paths resolve branch. Returns output JSON."""
+    """Execute the paths resolve branch. Returns output JSON."""
     json_in = validate_input(gate_raw_definition_input, input_path)
     raw_definition = AgentRawDefinition.model_validate_json(json_in)
     workspace = raw_definition.security.security_paths.paths_workspace.root

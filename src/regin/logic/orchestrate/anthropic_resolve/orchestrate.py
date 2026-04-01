@@ -1,4 +1,4 @@
-"""Level 8 — Resolve universal render into Anthropic platform format.
+"""Resolve universal render into Anthropic platform format.
 
 Gate in:  gate_universal_render_input (reads TOML, returns validated JSON)
 Gate out: gate_anthropic_render_output (validates JSON, writes TOML)
@@ -25,7 +25,7 @@ from regin.structure.model.anthropic_context import AnthropicContext
 
 
 def run(input_path: Path, output_path: Path) -> str:
-    """Execute the L8 anthropic resolve branch. Returns output JSON."""
+    """Execute the anthropic resolve branch. Returns output JSON."""
     json_in = validate_input(gate_universal_render_input, input_path)
     source = AgentUniversalRender.model_validate_json(json_in)
     registry = load_registry()

@@ -1,4 +1,4 @@
-"""Level 6 — Merge content and permissions branches into universal format.
+"""Merge content and permissions branches into universal format.
 
 Gate in:  gate_permissions_resolved_input (left), gate_includes_merged_input (right)
 Gate out: gate_universal_format_output (validates JSON, writes TOML)
@@ -24,7 +24,7 @@ from regin.structure.gen.schema.agent_universal_format import AgentUniversalForm
 
 
 def run(left_path: Path, right_path: Path, output_path: Path) -> str:
-    """Execute the L6 universal merge branch. Returns output JSON."""
+    """Execute the universal merge branch. Returns output JSON."""
     json_left = validate_input(gate_permissions_resolved_input, left_path)
     json_right = validate_input(gate_includes_merged_input, right_path)
     left = AgentPermissionsResolved.model_validate_json(json_left)
