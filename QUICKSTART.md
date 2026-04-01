@@ -32,9 +32,9 @@ regin /path/to/agent-definition.toml -o /path/to/output-dir
 
 Read `CLAUDE.md` in this directory before writing any code. It documents 7 specific failure modes that every LLM session has hit. The critical ones:
 
-1. **Do NOT put file IO in Python code.** Gates handle ALL IO. If you write `Path.read_text()`, `open()`, or `write_text()` anywhere in `functions/pure/`, you are wrong.
+1. **Do NOT put file IO in Python code.** Gates handle ALL IO. If you write `Path.read_text()`, `open()`, or `write_text()` anywhere in `logic/pure/` or `logic/transform/`, you are wrong.
 
-2. **Do NOT name steps sequentially.** Never `step_01`, `step_02`. Steps are named `level{N}_{branch}_{operation}.py`. The level number encodes DAG depth.
+2. **Do NOT name steps sequentially.** Never `step_01`, `step_02`. Orchestration is organized by domain: `logic/orchestrate/{domain}/orchestrate.py`. Domain names describe what the step does, not when it runs.
 
 3. **Do NOT name gates after branches.** Gates are named after their checkpoint schema: `gate_{checkpoint}_{direction}`. The gate serves any branch that needs that schema.
 
@@ -42,7 +42,7 @@ Read `CLAUDE.md` in this directory before writing any code. It documents 7 speci
 
 5. **Do NOT write ad-hoc validation.** JSON Schema is the only validation mechanism. Ad-hoc `if field not in record` checks are a session-terminating violation.
 
-6. **Do NOT edit generated structure files.** Files in `structures/` that are listed in `generate_structures.py`'s `SCHEMA_MODULES` dict are generated from JSON Schemas. Edit the Verdandi YAML source, run Draupnir, then run `generate_structures.py`.
+6. **Do NOT edit generated structure files.** Files in `structure/gen/` are generated from JSON Schemas by `generate_structures.py`. Edit the Verdandi YAML source, run Draupnir, then run `generate_structures.py`. Hand-written models live in `structure/model/` and `structure/config/`.
 
 7. **Do NOT exceed Gleipnir constraints.** Each function does one thing. If gleipnir flags a violation, the function does too much — decompose, don't compress.
 
@@ -56,49 +56,30 @@ tools/regin/
   generate_structures.py      # JSON Schema -> Pydantic models
   tool_registry.toml          # deployed Nornir writer tools
   CLAUDE.md                   # MANDATORY: read before writing any code
-  DAG_EXPLAINED.md            # full DAG shape, level descriptions
   BRANCH_EXPLAINED.md         # gate IO model, runner harness, work contract
   CONTEXT_MAP.md              # where to find every piece of context
   src/regin/
     cli.py                    # entry point: regin command
-    steps/                    # DAG runners (one file per pipeline node)
-      level1_paths_resolve.py
-      level2_paths_verify.py
-      level3_content_*.py     # 4 parallel content reducers
-      level3_permissions_resolve.py
-      level4_content_*.py     # 2 content merges
-      level5_content_includes_merge.py
-      level6_universal_merge.py
-      level7_render_regroup.py
-      level8_anthropic_resolve.py
-    functions/
-      impure/
-        gates.py              # loads + calls Nornir PyO3 gate .so modules
-        runner.py             # uniform harness: gate_in -> work -> gate_out
-        registry.py           # loads tool_registry.toml
-      pure/                   # ALL domain logic (no IO)
-        path_resolver.py      # workspace-relative -> absolute paths
-        instructions.py       # reduce instruction includes
-        examples.py           # reduce example includes
-        guardrails.py         # reduce guardrail includes
-        success_criteria.py   # reduce criteria includes
-        mergers.py            # merge branch outputs (verify shared sections)
-        permissions.py        # 6-phase security resolution (A-F)
-        render.py             # 6 domain sections -> consumption sections
-        anthropic_resolver.py # vendor-specific resolution (lookup tables)
-        section_compare.py    # verify sections match during merges
-        tool_discovery.py     # match agent spec against tool registry
-    structures/               # Pydantic models
-      [13 generated files]    # from JSON Schemas -- DO NOT EDIT
-      gate_types.py           # GateResult, GateError (hand-written)
-      errors.py               # 5 exception classes (hand-written)
-      enums.py                # Capability, VendorTool, etc. (hand-written)
-      vendor_lookup.py        # ANTHROPIC singleton lookup tables (hand-written)
-      resolved_tool.py        # ResolvedTool, ToolBuildRequest (hand-written)
-      resolved_grants.py      # OutputMode enum (hand-written)
-      tool_registry.py        # ToolRegistryEntry model (hand-written)
-  tests/
-    test_guardrails.py        # Gleipnir architectural guardrails
+    logic/
+      entry_point.py          # pipeline orchestration: trunk, fanout, convergence
+      orchestrate/            # 9 domain directories (gate_in -> work -> gate_out)
+        defaults_inject/      # L0: passthrough gate injects schema defaults
+        paths_resolve/        # L1: resolve workspace-relative paths
+        paths_verify/         # L2: passthrough gate verifies path existence
+        content_reduce/       # L3: 4 parallel content reducers (run_instructions, etc.)
+        permissions_resolve/  # L3: security -> enforcement grants
+        content_merge/        # L4-L5: 3 merge steps (execution, criteria, includes)
+        universal_merge/      # L6: converge content + permissions branches
+        render_regroup/       # L7: 6 domain sections -> 12 consumption sections
+        anthropic_resolve/    # L8: vendor-specific resolution
+      impure/                 # IO boundary (gates, include loading, registry, tree mutation)
+      pure/                   # computation (grant derivation, path ops, security validation, tree walk)
+      transform/              # data reshaping (codegen cleanup, grant expand, paths, regroup, vendor)
+    structure/
+      gen/schema/             # 13 generated checkpoint models -- DO NOT EDIT
+      gen/fragment/           # 7 generated include-fragment models -- DO NOT EDIT
+      model/                  # hand-written domain models (gate_types, found_item, etc.)
+      config/                 # hand-written config models (capability_tiers, tool_registry)
 ```
 
 ---
@@ -133,7 +114,7 @@ Run after every significant change. Not after finishing a phase -- after every f
 cd tools/regin && ./generate_structures.py
 ```
 
-This reads `schemas/agent-*.schema.json` and overwrites the generated Pydantic model files in `src/regin/structures/`. Hand-written files are not affected.
+This reads `schemas/agent-*.schema.json` and overwrites the generated Pydantic model files in `src/regin/structure/gen/`. Hand-written files in `structure/model/` and `structure/config/` are not affected.
 
 ---
 

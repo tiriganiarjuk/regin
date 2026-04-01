@@ -127,7 +127,7 @@ Each branch provides a work function. The contract:
 - **Receives:** JSON string(s) from input gate(s)
 - **Returns:** JSON string for output gate
 - **Inside:** Parses to Pydantic model(s), calls pure function(s), serializes result
-- **Purity:** The work function itself may be impure (e.g., loading include files for the content reducers). The pure functions it calls are in `functions/pure/`. The work function is the composition point.
+- **Purity:** The work function itself may be impure (e.g., loading include files for the content reducers). The pure functions it calls are in `logic/pure/`. The work function is the composition point.
 
 ```python
 def work(gated_json: str) -> str:
