@@ -17,6 +17,7 @@ from regin.structure.gen.schema import agent_anthropic_render as anthr
 def compose_critical_rules(
     resolved_tool: ResolvedTool | None,
     writing_output: render.WritingOutput | None,
+    workspace_path: str,
 ) -> anthr.CriticalRules:
     """Compose critical rules — the highest-priority behavioral constraints.
 
@@ -49,6 +50,7 @@ def compose_critical_rules(
         tool_name=tool_name,
         name_needed=name_needed,
         batch_size=batch_size,
+        workspace_path=anthr.PathExistsAbsolute(workspace_path) if workspace_path else None,
     )
 
 

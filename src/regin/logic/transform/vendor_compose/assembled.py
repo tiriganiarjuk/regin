@@ -35,16 +35,16 @@ def compose_anthropic_sections(
     """Assemble all 14 Anthropic sections from universal render + context.
 
     The AnthropicContext carries everything resolved in L8 before this point:
-    the concrete model name, the matched registry tool, the display entries,
+    the concrete model name, the matched registry tool, the filesystem permissions,
     and the merged hooks config. This function wires those resolved values
     into the vendor-specific sections while passing through the rest unchanged.
     """
-    identity = compose_identity(source.identity, context.model)
+    identity = compose_identity(source.identity)
     workspace_path = source.security_boundary.workspace_path.root if source.security_boundary else ""
 
     return anthr.AgentAnthropicRender(
         identity=identity,
-        security_boundary=compose_security_boundary(context.display, workspace_path),
+        security_boundary=compose_security_boundary(context.filesystem_permissions, workspace_path),
         input=pass_through(source.input, anthr.Input),
         output=pass_through(source.output, anthr.Output),
         writing_output=compose_writing_output(context.resolved_tool, source.writing_output),
@@ -56,6 +56,10 @@ def compose_anthropic_sections(
         dispatcher=pass_through(source.dispatcher, anthr.Dispatcher),
         instructions=pass_through(source.instructions, anthr.Instructions),
         examples=pass_through(source.examples, anthr.Examples),
-        critical_rules=compose_critical_rules(context.resolved_tool, source.writing_output),
-        frontmatter=compose_frontmatter(identity, context.model, context.hooks, context.merged_tools),
+        critical_rules=compose_critical_rules(context.resolved_tool, source.writing_output, workspace_path),
+        frontmatter=compose_frontmatter(
+            identity,
+            anthr.AgentDescription(source.dispatcher.agent_description.root),
+            context.model, context.hooks, context.merged_tools,
+        ),
     )

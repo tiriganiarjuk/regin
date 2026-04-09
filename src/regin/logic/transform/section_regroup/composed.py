@@ -35,7 +35,6 @@ def regroup_identity(source: AgentUniversalFormat) -> render.Identity:
     role = source.task.role
     return render.Identity(
         title=render.TitleString(title),
-        description=render.AgentDescription(source.indirect.metadata.agent_description.root),
         role_identity=render.StringText(role.role_identity.root),
         role_responsibility=render.RoleResponsibility(role.role_responsibility.root),
         capability_tier=render.AgentCapabilityTier(source.task.processing.capability_model.value),

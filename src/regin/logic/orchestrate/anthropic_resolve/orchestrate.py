@@ -14,7 +14,7 @@ import gate_universal_render_input
 from regin.logic.impure.gates.simple import validate_input, validate_output
 from regin.logic.impure.registry.simple import load_registry
 from regin.logic.pure.tool_resolve.composed import (
-    build_display,
+    build_filesystem_permissions,
     discover_tool,
     resolve_model,
 )
@@ -33,10 +33,10 @@ def run(input_path: Path, output_path: Path) -> str:
     resolved_tool = discover_tool(source.writing_output, registry)
     explicit_tools, explicit_commands, hooks = resolve_grants_and_hooks(source, resolved_tool)
     workspace = source.security_boundary.workspace_path.root if source.security_boundary else ""
-    display = build_display(explicit_tools, explicit_commands, workspace)
+    filesystem_permissions = build_filesystem_permissions(explicit_tools, explicit_commands, workspace)
     context = AnthropicContext(
         model=model, resolved_tool=resolved_tool,
-        merged_tools=hooks.tool_entries, display=display, hooks=hooks,
+        merged_tools=hooks.tool_entries, filesystem_permissions=filesystem_permissions, hooks=hooks,
     )
     result = compose_anthropic_sections(source, context)
     json_out = result.model_dump_json(by_alias=True, exclude_unset=True, exclude_none=True)

@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict
 
 from regin.structure.gen.schema.agent_anthropic_render import (
     AnthropicModel,
-    DisplayEntries,
+    FilesystemPermissions,
     HooksConfig,
     ToolPathEntries,
 )
@@ -21,5 +21,5 @@ class AnthropicContext(BaseModel):
     model: AnthropicModel
     resolved_tool: ResolvedTool | None = None
     merged_tools: ToolPathEntries | None = None
-    display: DisplayEntries | None = None
+    filesystem_permissions: FilesystemPermissions | None = None
     hooks: HooksConfig

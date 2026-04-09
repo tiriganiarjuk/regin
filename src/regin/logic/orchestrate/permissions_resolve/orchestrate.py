@@ -13,15 +13,8 @@ import gate_paths_verified_input
 import gate_permissions_resolved_output
 
 from regin.logic.impure.gates.simple import validate_input, validate_output
-from regin.logic.pure.grant_derive.assembled import derive_explicit_grants
-from regin.logic.pure.grant_derive.composed import (
-    assemble_output_tool,
-    derive_implicit_grants,
-)
-from regin.logic.pure.path_operations.composed import (
-    collapse_path_containment,
-    intersect_paths_capabilities,
-)
+from regin.logic.pure.grant_derive.assembled import derive_explicit_grants, derive_implicit_grants
+from regin.logic.pure.grant_derive.composed import assemble_output_tool
 from regin.logic.pure.security_validate.assembled import check_blocking
 from regin.structure.gen.schema.agent_paths_resolved import AgentPathsResolved
 from regin.structure.gen.schema.agent_permissions_resolved import (
@@ -45,10 +38,10 @@ def run(input_path: Path, output_path: Path) -> str:
         raise ValueError(f"blocking check failed: {'; '.join(messages)}")
     enforcement = Enforcement(
         enforcement_explicit_grants=derive_explicit_grants(
-            model.security, intersect_paths_capabilities, collapse_path_containment,
+            model.security,
         ),
         enforcement_implicit_grants=derive_implicit_grants(
-            model.security, collapse_path_containment,
+            model.security,
         ),
         enforcement_output_tool=assemble_output_tool(model.security, model.task.processing),
     )

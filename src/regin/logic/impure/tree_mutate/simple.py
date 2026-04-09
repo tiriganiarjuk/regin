@@ -1,34 +1,14 @@
-"""Tree mutation simple functions — pattern-matched write-back and DI contracts.
+"""Tree mutation simple functions — pattern-matched write-back.
 
 CC=1-3 functions. Import from primitive only.
 
 Handles both structural match cases for writing replacement values back to
 the model tree: FoundInField (value is a named attribute on a BaseModel parent)
 and FoundInList (value is an indexed item in a RootModel list). This is the
-generic replacement operation used by expand_replace.
-
-Type aliases define the DI contracts for walk_find_replace in assembled.py:
-- IncludeExpander: callback that loads an include file and mutates the tree
-- TreeFinder: callback that locates all instances of a target type in the tree
+generic replacement operation used by include_expand.
 """
-
-from collections.abc import Callable
-
-from pydantic import BaseModel
 
 from regin.structure.model.found_item import FoundInField, FoundInList, FoundItem
-
-type IncludeExpander[T] = Callable[[FoundItem[T]], bool]
-"""Loads an include file via a gate, converts it to the host schema, and
-mutates the tree in place (splice, replace, or field-set). Returns True
-on success. Implemented by resolve_*_include() in include_expand/assembled.
-"""
-
-type TreeFinder[T] = Callable[[BaseModel, type[T]], list[FoundItem[T]]]
-"""Walks a Pydantic model tree depth-first and returns all instances of
-the target type with their location metadata (parent + field/index).
-Implemented by walk_and_find() in pure/tree_walk/composed.
-"""
 
 
 def replace_found[T](found: FoundItem[T], replacement: T) -> bool:

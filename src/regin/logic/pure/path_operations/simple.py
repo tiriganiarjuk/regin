@@ -1,36 +1,9 @@
-"""Path predicates and DI type contracts for path operations.
+"""Path predicates for security validation and grant operations.
 
-CC=1-3 functions. Type aliases define the contracts for path_operations
-functions that are injected via DI into grant_derive (avoiding
-Composed→Composed cross-module imports).
-
-Building blocks for both security validation (blocking checks) and grant
-operations (containment collapse). These encode the filesystem containment
-model: path A contains path B when B starts with A's prefix.
-"""
-
-from collections.abc import Callable
-
-from regin.structure.gen.schema.agent_paths_resolved import Capabilities
-
-type PathIntersector = Callable[
-    [list[str], list[str], set[Capabilities], set[Capabilities]],
-    dict[str, set[str]],
-]
-"""Crosses read/write paths with requested/prohibited capabilities.
-
-Produces a capability-to-path-set map: {"read": {"/foo", "/bar"}, "write": {"/baz"}}.
-Implemented by intersect_paths_capabilities() in path_operations/composed.
-"""
-
-type PathCollapser = Callable[
-    [dict[str, set[str]]],
-    dict[str, list[str]],
-]
-"""Deduplicates paths within each capability bucket by containment.
-
-If /foo/ and /foo/bar/ are both granted, only /foo/ survives.
-Implemented by collapse_path_containment() in path_operations/composed.
+CC=1-3 functions. Building blocks for both security validation (blocking
+checks) and grant operations (containment collapse). These encode the
+filesystem containment model: path A contains path B when B starts with
+A's prefix.
 """
 
 

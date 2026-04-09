@@ -35,20 +35,17 @@ def pass_through(
 
 
 def compose_identity(
-    source: render.Identity, model: anthr.AnthropicModel,
+    source: render.Identity,
 ) -> anthr.IdentityAnthropic:
-    """Compose Anthropic identity — replaces abstract tier with resolved model.
+    """Compose Anthropic identity from universal identity.
 
-    The universal identity carries capability_tier (haiku/sonnet/opus as an
-    abstract tier). The Anthropic identity replaces it with the concrete model
-    name resolved in L8 (e.g., claude-sonnet-4-20250514).
+    Pass-through with type conversion. Model resolution is handled
+    separately at the frontmatter level.
     """
     return anthr.IdentityAnthropic(
         title=anthr.AgentTitle(anthr.TitleString(source.title.root)),
-        description=anthr.AgentDescription(source.description.root),
         role_identity=anthr.StringText(source.role_identity.root),
         role_responsibility=anthr.RoleResponsibility(source.role_responsibility.root),
-        model=model,
         role_description=(
             anthr.RoleDescription(source.role_description.root)
             if source.role_description else None
@@ -78,6 +75,7 @@ def collect_tool_names(merged_tools: anthr.ToolPathEntries | None) -> set[str]:
 
 def compose_frontmatter(
     identity: anthr.IdentityAnthropic,
+    description: anthr.AgentDescription,
     model: anthr.AnthropicModel,
     hooks: anthr.HooksConfig,
     merged_tools: anthr.ToolPathEntries | None,
@@ -92,7 +90,7 @@ def compose_frontmatter(
     """
     return anthr.Frontmatter(
         name=identity.title,
-        description=identity.description,
+        description=description,
         model=model,
         permission_mode=anthr.PermissionMode.bypassPermissions,
         tools=anthr.FrontmatterTools(

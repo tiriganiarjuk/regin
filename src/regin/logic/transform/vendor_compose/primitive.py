@@ -12,17 +12,16 @@ from regin.structure.gen.schema import agent_anthropic_render as anthr
 
 
 def compose_security_boundary(
-    display: anthr.DisplayEntries | None,
+    filesystem_permissions: anthr.FilesystemPermissions | None,
     workspace_path: str,
 ) -> anthr.SecurityBoundaryAnthropic:
-    """Anthropic security boundary — adds display field to universal model.
+    """Anthropic security boundary — adds filesystem permissions to universal model.
 
-    The Anthropic security boundary adds a `display` field that the universal
-    format does not have. Display entries are a human-readable summary of
+    Filesystem permission entries are a human-readable summary of
     tool/command grants per path, generated in L8 for inclusion in the
     rendered prompt so the agent knows what tools are available where.
     """
     return anthr.SecurityBoundaryAnthropic(
         workspace_path=anthr.PathExistsAbsolute(workspace_path),
-        display=display,
+        filesystem_permissions=filesystem_permissions,
     )

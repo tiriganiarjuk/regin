@@ -18,6 +18,11 @@ from regin.structure.gen.schema.agent_paths_resolved import (
     SecurityIo,
     SecurityPaths,
 )
+from regin.structure.gen.schema.agent_permissions_resolved import (
+    EnforcementImplicitEdit,
+    EnforcementImplicitRead,
+    EnforcementImplicitWrite,
+)
 
 
 def extract_read_paths(paths: SecurityPaths) -> list[str]:
@@ -80,3 +85,18 @@ def collect_implicit_writes(io_section: SecurityIo, workspace_name: str) -> set[
     if io_section.io_scratch_tempdir:
         writes.add(f"/tmp/{workspace_name}/{io_section.io_scratch_tempdir.root}/")
     return writes
+
+
+def wrap_implicit_read(collapsed: dict[str, list[str]]) -> EnforcementImplicitRead | None:
+    """Wrap collapsed read paths in the typed model, or None if absent."""
+    return EnforcementImplicitRead(collapsed["read"]) if "read" in collapsed else None
+
+
+def wrap_implicit_write(collapsed: dict[str, list[str]]) -> EnforcementImplicitWrite | None:
+    """Wrap collapsed write paths in the typed model, or None if absent."""
+    return EnforcementImplicitWrite(collapsed["write"]) if "write" in collapsed else None
+
+
+def wrap_implicit_edit(collapsed: dict[str, list[str]]) -> EnforcementImplicitEdit | None:
+    """Wrap collapsed edit paths in the typed model, or None if absent."""
+    return EnforcementImplicitEdit(collapsed["edit"]) if "edit" in collapsed else None

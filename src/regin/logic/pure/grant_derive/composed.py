@@ -1,10 +1,6 @@
-"""Derive implicit grants and assemble output tool specification.
+"""Derive implicit grant sources and assemble output tool specification.
 
-CC=4+. Import from simple and primitive within this module.
-No cross-module composed imports — path_operations injected via DI.
-
-Second stage of grant derivation: collecting implicit read/write sources and
-assembling the output tool specification.
+CC=4+. Import from simple within this module.
 
 "Implicit" means these grants are NOT from the capabilities_requested field —
 they are inferred from IO, schema, and context declarations that require file
@@ -18,11 +14,6 @@ naming convention) into the enforcement model that will be matched against the
 tool registry in L8 to find the binary that handles the agent's file output.
 """
 
-from regin.logic.pure.path_operations.simple import PathCollapser
-from regin.logic.pure.grant_derive.simple import (
-    build_raw_grants,
-    collect_implicit_writes,
-)
 from regin.structure.gen.schema.agent_paths_resolved import (
     Capabilities,
     Context,
@@ -33,10 +24,6 @@ from regin.structure.gen.schema.agent_paths_resolved import (
 )
 from regin.structure.gen.schema.agent_permissions_resolved import (
     Boolean,
-    EnforcementImplicitEdit,
-    EnforcementImplicitGrants,
-    EnforcementImplicitRead,
-    EnforcementImplicitWrite,
     EnforcementOutputTool,
     Integer,
     OutputFileNameKnown,
@@ -120,36 +107,6 @@ def collect_context_reads(context: Context) -> set[str]:
     return reads
 
 
-# -- Implicit grant aggregation (DI: collapse_fn from path_operations) --
-
-def derive_implicit_grants(
-    security: Security,
-    collapse_fn: PathCollapser,
-) -> EnforcementImplicitGrants:
-    """Aggregate all implicit read/write sources into the typed grant model.
-
-    This is the aggregation point for all implicit sources. The collapse_fn
-    (injected via DI from path_operations) deduplicates paths by containment —
-    if /foo/ and /foo/bar/ are both granted, only /foo/ survives.
-
-    The three implicit grant types (read, write, edit) cover the implicit
-    permission surface. Implicit grants have no search, inspect, or append —
-    those require explicit capability requests from the agent author.
-    """
-    workspace_name = security.security_paths.paths_workspace.root.rstrip("/").rsplit("/", 1)[-1]
-    reads = (
-        collect_io_reads(security.security_io, workspace_name)
-        | collect_schema_reads(security.security_schema)
-        | (collect_context_reads(security.context) if security.context else set())
-    )
-    writes = collect_implicit_writes(security.security_io, workspace_name)
-    raw_grants = build_raw_grants(reads, writes)
-    collapsed = collapse_fn(raw_grants)
-    return EnforcementImplicitGrants(
-        read=EnforcementImplicitRead(collapsed["read"]) if "read" in collapsed else None,
-        write=EnforcementImplicitWrite(collapsed["write"]) if "write" in collapsed else None,
-        edit=EnforcementImplicitEdit(collapsed["edit"]) if "edit" in collapsed else None,
-    )
 
 
 # -- Output tool assembly --
