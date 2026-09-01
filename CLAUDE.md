@@ -6,63 +6,11 @@ You are working on a DAG pipeline resolver. You have context from a compaction s
 
 After compaction, you have step names and a DAG shape but lose the gate IO model, the checkpoint-not-branch naming, the pure/impure boundary, and the ways this pipeline's architecture diverges from generic Python patterns. You will produce output that looks right, passes tests, and silently violates the architecture.
 
-**This has happened before.** Previous sessions working on the predecessor (`transform_to_universal`) have:
-
-- Named steps sequentially (`step_01`, `step_02`...) on a DAG — hiding parallelism and teaching false dependencies
-- Put IO (file reads/writes) inside Python code when gates handle all IO
-- Used `dict[str, Any]` instead of frozen Pydantic models
-- Built ad-hoc Python validation instead of using JSON Schema — a SESSION-TERMINATING violation
-- Written monolithic functions that gleipnir flags for doing too many things
-- Confused the content branch (levels 3-5) with the permissions branch (level 3) — they are independent until level 6
-- Created separate `loaders.py` and `writers.py` when gates handle IO directly
+**This has happened before.** Previous sessions in this project have produced output that compiled, passed review, and implemented the wrong architecture — work that had to be thrown away.
 
 None of them felt uncertain while doing it.
 
 **The test:** Can you draw the DAG from memory — which levels fan out, where the branches are, where they converge? Can you state what gates do (read/write files, validate, convert TOML↔JSON) and what Python does NOT do (no file IO, no validation)? If not, read DAG_EXPLAINED.md and BRANCH_EXPLAINED.md before proceeding.
-
----
-
-## You Will Get These Things Wrong
-
-### Putting IO in Python Code
-**Detection:** If you find `Path`, `open()`, `read_text()`, `write_text()` anywhere in Python...
-**Why it's wrong:** Gates handle ALL IO. Input gates read files and return JSON. Output gates take JSON and write files. Python code between gates never touches the filesystem. The only exception is include file loading during content reduction (levels 3 content branch), which is the step's domain-specific work.
-**Recovery:** Read BRANCH_EXPLAINED.md "What the Gates Do"
-
-### Naming Steps Sequentially
-**Detection:** If you find yourself writing `step_01`, `step_02`, or any sequential numbering...
-**Why it's wrong:** Sequential numbering on a DAG is a lie. It teaches every future LLM that steps depend on each other linearly. Orchestration is organized by domain: `orchestrate/{domain}/orchestrate.py`. Domain names describe what the step does, not when it runs.
-**Recovery:** Read DAG_EXPLAINED.md "File Naming Convention"
-
-### Naming Gates After Branches
-**Detection:** If you find yourself thinking "this is the instructions gate" or "this is the permissions gate"...
-**Why it's wrong:** Gates are named after the checkpoint schema they validate, not the branch they belong to. `gate_paths_verified_input` serves five different branches. The gate doesn't know or care which branch calls it.
-**Recovery:** Read BRANCH_EXPLAINED.md "Checkpoints, Not Branches"
-
-### Using dict Instead of Frozen Pydantic Models
-**Detection:** If you find `dict[str, Any]` or `.model_dump()` anywhere except inside a work function before handing JSON to the output gate...
-**Why it's wrong:** Type safety is end-to-end. Models are frozen (`ConfigDict(frozen=True)`). Transformations use `model_copy(update={})`. Serialization via `model_dump_json(by_alias=True, exclude_none=True)` happens ONCE per branch, inside the work function.
-**Recovery:** Look at any work function — it parses JSON to a model, transforms, serializes back.
-
-### Writing Ad-Hoc Validation Instead of JSON Schema
-**Detection:** If you find `if field not in record` or `isinstance(record[field], str)` checks...
-**Why it's wrong:** SESSION-TERMINATING VIOLATION. Schema validation means a `.schema.json` file exists and the compiled gate validates against it. Always. No exceptions.
-**Recovery:** Read `documentation/operations/STANDARD_OPERATING_PROCEDURES.md` § Schema Validation.
-
-### Breaking the DAG Shape
-**Detection:** If you pass data from a level 3 content step to the permissions step, or make level 4 depend on level 3 permissions output...
-**Why it's wrong:** The content branch (levels 3-5) and the permissions branch (level 3) are independent until level 6 (convergence). Breaking this creates implicit coupling.
-**Recovery:** Read DAG_EXPLAINED.md "The Levels"
-
-### Exceeding Gleipnir Constraints Then Suppressing
-**Detection:** If you add `# type: ignore`, expand quarantine lists, or think "this function needs to be longer"...
-**Why it's wrong:** Gleipnir makes bad patterns expensive. If a function triggers a length violation, it does too many things. Find the functional primitive.
-**Recovery:** Re-read `~/.ai/phoenix/coding_reference/AI_BREAKTHROUGHS_HEMINGWAY_CODING.md`
-
-### Modifying Generated Structure Files
-**Detection:** If you edit files in `structure/gen/` that were generated by `generate_structures.py`...
-**Why it's wrong:** Files in `structure/gen/schema/` and `structure/gen/fragment/` are generated from JSON Schemas. Manual edits will be silently overwritten. Hand-written files live in `structure/model/` and `structure/config/`.
-**Recovery:** Change the Verdandi YAML source → run Draupnir → run `generate_structures.py`.
 
 ---
 
