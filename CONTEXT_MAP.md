@@ -1,234 +1,68 @@
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- DO NOT EDIT THIS BLOCK. Before editing ANY part of this file, you MUST  -->
+<!-- first read /Users/johnny/.ai/CONTEXT_MANAGEMENT_SYSTEM.md — it defines  -->
+<!-- what this file is for and what may NOT go in it.                        -->
+<!--                                                                          -->
+<!-- This file is a MAP (a router), not a source. Its only job is to tell    -->
+<!-- you WHERE the context lives — it never holds the context, state, or     -->
+<!-- progress itself. Reading this map does NOT orient you; you are NOT      -->
+<!-- oriented until you have read the Orientation-gate docs it points to, in -->
+<!-- the order given.                                                         -->
+<!--                                                                          -->
+<!-- THE WHITELIST RULE: if a doc is not in this map, it is not for           -->
+<!-- orientation — do not read it. A stale doc is UNLINKED or DELETED, never -->
+<!-- flagged in place. No freshness tags. No "do-not" guards. No state.       -->
+<!-- Behavioral rules live in CLAUDE.md, not here.                            -->
+<!--                                                                          -->
+<!-- This file is LOW-CHURN. It changes only when how-to-get-oriented        -->
+<!-- changes — i.e. a doc is added or removed. It is not a worklog and is    -->
+<!-- not regenerated per session.                                            -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+
 # CONTEXT_MAP — Regin
 
-**Last updated:** 2026-04-01
+## Purpose
 
-## 1. Purpose Statement
-
-Regin is the DAG pipeline resolver that transforms raw agent definition TOML files through gated stages into platform-ready render formats. It replaces and merges the former `transform_to_universal` (levels 1-7) and `universal_to_canonical` (level 8) into a single project. Gates are compiled Rust (PyO3) modules that handle all file IO — Python code between gates transforms only the delta between checkpoint schemas. This CONTEXT_MAP helps agents orient to where knowledge lives and where to refresh context mid-session.
+The definition resolver: it takes an agent definition as authored and resolves it into one frozen, gate-validated artifact — answering *what is this agent*, never how it reads.
 
 ---
 
----
+## Orientation gate — read these, in this order, to be oriented
 
-## 0. Start here — the pipeline orientation set
+1. `~/.ai/smidja/galdr/context/AGENT_BUILD_SYSTEM.md` — why the pipeline exists at all: determinism as the goal, and the double gate that makes an LLM-written transform safe to have in a pipeline.
+2. `~/.ai/smidja/galdr/context/REGIN_ELEMENT.md` — Regin's own reason for being: the delta principle, the uniform runner, why checkpoints are written to disk, and why L7 regroups.
 
-Before this map, read the orientation documents at
-`~/.ai/smidja/galdr/context/`. They carry the reasoning behind the whole
-Verdandi → Draupnir → Nornir → Regin → Galdr pipeline — **why it exists, what each stage
-buys, and which parts are not built** — which is the one thing that cannot be recovered by
-reading a tree. Every previous session that skipped them inferred a purpose from the
-structure and got it wrong.
+> **This is a DAG, not a sequence.** It is the single thing every previous reader got
+> wrong, and module names no longer encode order at all — the shape lives only in the
+> wiring. Read the graph before you read any branch.
 
-- `context/AGENT_BUILD_SYSTEM.md` — the map. Read first.
-- `context/REGIN_ELEMENT.md` — this project's part. Read second.
+3. `BRANCH_EXPLAINED.md` — the branch pattern: what every stage has in common, and why they are interchangeable in form.
+4. `src/regin/cli.py` — short, and the only place the ordering exists. `run_trunk`, `run_fanout`, `run_convergence` name the shape directly.
 
-They are wikilinked to each other; follow them as needed.
+> The next four are read by you, personally, in this context — never delegated to a
+> subagent, never absorbed via a summary.
 
-## 2. Primary References
+5. `WHY_THIS_FEELS_WRONG.md` — the frame: what this environment is, and why it will feel over-constrained until you understand it.
+6. `EVERY_CHECK_IS_A_PROXY.md` — why the feedback steers where it steers. Read before the next one, so the level system reads as engineering rather than as limits.
+7. `THE_LEVEL_SYSTEM.md` — zones, levels, and the decision procedure for where every piece of code lives.
+8. `HOW_DATA_ENTERS.md` — the boundary: how external data becomes typed, and why unknown data never gets in.
 
-| Resource | Path | What It Contains | When to Read |
-|----------|------|------------------|--------------|
-| CLAUDE.md | `tools/regin/CLAUDE.md` | Context refresh protocol, anti-patterns (7 documented), architecture summary, coding discipline refs, guardrail mandate | Every session start. Mandatory before writing any code. |
-| DAG_EXPLAINED | `tools/regin/DAG_EXPLAINED.md` | Full DAG diagram, level descriptions (1-8), gate inventory per level, fan-out/convergence points, file naming convention | When you need the pipeline shape or are unsure which gates a step uses |
-| BRANCH_EXPLAINED | `tools/regin/BRANCH_EXPLAINED.md` | Gate IO model, checkpoint-not-branch principle, uniform runner harness, work function contract, delta table, complete gate inventory | When you need to understand how gates work or how to write a runner |
-| TOOL_BUILDING | `definitions/TOOL_BUILDING.md` | End-to-end pipeline (Verdandi → Draupnir → Nornir → Regin → Galdr), section on Regin's role | When you need to understand how Regin fits in the full chain |
+**Proof:** before writing anything, state (a) which stages run in parallel and how you know, (b) what *"Delta: NONE — the gate IS the branch"* means and why that is a legitimate stage rather than a stub, and (c) one thing you would have written that this architecture forbids.
 
 ---
 
-## 3. Documentation References
+## Refresh guide — want X → read Y
 
-### Pipeline Architecture
-
-| Document | Path | Relevance | Freshness |
-|----------|------|-----------|-----------|
-| SECURITY_RESOLUTION | `documentation/pipeline/SECURITY_RESOLUTION.md` | Authoritative 6-phase (A-F) permission algorithm with worked example | Current |
-| PERMISSIONS_CALCULATION_REVISED | `documentation/pipeline/PERMISSIONS_CALCULATION_REVISED.md` | Two independent permission systems, output path exclusion, field conditional chains | Current |
-| CRITICAL_DECISIONS | `documentation/pipeline/CRITICAL_DECISIONS.md` | Design decisions D1-D11 defining the architecture | Current |
-| TRANSFORMER_LOGIC | `documentation/pipeline/TRANSFORMER_LOGIC.md` | Resolver pipeline design, strategic value of universal format | **Stale:** describes 7-phase permissions (implementation uses 6-phase A-F) |
-| DEFINITION_FORMAT | `documentation/pipeline/DEFINITION_FORMAT.md` | Complete ASCII tree spec of the 6-section agent definition format | **Stale:** missing `dispatch_input_description`, `processing_output_description`, `return_schema` |
-
-### Render Format
-
-| Document | Path | Relevance | Freshness |
-|----------|------|-----------|-----------|
-| IDEAL_RENDER_FORMAT | `documentation/pipeline_render/IDEAL_RENDER_FORMAT.md` | Two-layer render architecture (universal + platform render) | Current |
-| CONSUMPTION_ANALYSIS | `documentation/pipeline_render/CONSUMPTION_ANALYSIS.md` | Field-level mapping from universal format to artifacts | Current |
-| SECTION_DESIGN | `documentation/pipeline_render/SECTION_DESIGN.md` | Data-packet-plus-template architecture, Jinja2 template design | Current |
-| UNIVERSAL_RENDER_SCHEMA_DESIGN | `documentation/pipeline_render/UNIVERSAL_RENDER_SCHEMA_DESIGN.md` | Field-level design for universal render schema | **Stale:** documents 12 sections; implementation also has 12 but field details may differ |
-
----
-
-## 4. Schema References
-
-All schemas in `schemas/` that Regin consumes or produces. Generated by Draupnir from Verdandi YAML compositions.
-
-| Schema | Checkpoint File | Pipeline Position |
-|--------|----------------|-------------------|
-| `agent-raw-definition.schema.json` | *(input file)* | Entry point |
-| `agent-paths-resolved.schema.json` | `paths_resolved.toml` | After level 1 |
-| `agent-paths-resolved.schema.json` | `paths_verified.toml` | After level 2 (with path existence checks) |
-| `agent-instructions-reduced.schema.json` | `instructions_reduced.toml` | After level 3 content |
-| `agent-examples-reduced.schema.json` | `examples_reduced.toml` | After level 3 content |
-| `agent-guardrails-reduced.schema.json` | `guardrails_reduced.toml` | After level 3 content |
-| `agent-success-reduced.schema.json` | `success_reduced.toml` | After level 3 content |
-| `agent-execution-merged.schema.json` | `execution_merged.toml` | After level 4 content |
-| `agent-criteria-merged.schema.json` | `criteria_merged.toml` | After level 4 content |
-| `agent-includes-merged.schema.json` | `includes_merged.toml` | After level 5 (Red 4) |
-| `agent-permissions-resolved.schema.json` | `permissions_resolved.toml` | After level 3 permissions (Red 5) |
-| `agent-universal-format.schema.json` | `universal_format.toml` | After level 6 (Red 6) |
-| `agent-universal-render.schema.json` | `universal_render.toml` | After level 7 (Red 7) |
-| `agent-anthropic-render.schema.json` | `anthropic_render.toml` | After level 8 (Red 8) — placeholder |
-
----
-
-## 5. Upstream Dependencies
-
-| Dependency | Path | What It Provides |
-|------------|------|-----------------|
-| Verdandi | `tools/verdandi/` (~348 files, 15 levels) | YAML composition types defining structural vocabulary for every pipeline stage |
-| Draupnir | `tools/draupnir/` | Compiles Verdandi YAML into JSON Schema files at `schemas/agent-*.schema.json` |
-| Nornir gates | `~/.ai/tools/lib/gate_*.cpython-313-darwin.so` | Compiled Rust/PyO3 gate modules — handle file IO, schema validation, TOML↔JSON conversion |
-| Agent definitions | `definitions/agents/*.toml` | Raw TOML definition files (pipeline input) |
-| Include files | Various workspace paths | Markdown, TOML, JSON files referenced by `include = "path"` entries |
-| JSON Schemas | `schemas/agent-*.schema.json` | Source of truth for Pydantic model generation via `generate_structures.py` |
-
----
-
-## 6. Downstream Consumers
-
-| Consumer | What It Reads |
-|----------|--------------|
-| Galdr | `anthropic_render.toml` (Red 8) — produces deployable `.md` agent files via Jinja2 templates |
-| Nornir gates | Every checkpoint TOML — gates validate at each stage boundary |
-
----
-
-## 7. Source Code Map
-
-### Entry Point
-
-| File | Purpose |
-|------|---------|
-| `cli.py` | CLI entry point. Creates sidecar directory, calls `run_pipeline`. Entry point: `regin.cli:main` |
-| `logic/entry_point.py` | Pipeline orchestration. Sequences domain orchestrators through `run_trunk`, `run_fanout`, `run_convergence` |
-
-### Orchestrate (`logic/orchestrate/`) — 9 domain directories
-
-Each domain has `orchestrate.py` (gate_in → work → gate_out wiring). Domains with multiple parallel branches may also have `dispatch.py` (type→callable routing table).
-
-| Domain | Level | Branch | Functions | Gates |
-|--------|-------|--------|-----------|-------|
-| `defaults_inject/` | 0 | trunk | `run` | `raw_definition_defaults` (passthrough) |
-| `paths_resolve/` | 1 | trunk | `run` | `raw_definition_input` → `paths_resolved_output` |
-| `paths_verify/` | 2 | trunk | `run` | `paths_verified` (passthrough) |
-| `content_reduce/` | 3 | content | `run_instructions`, `run_examples`, `run_guardrails`, `run_success` | `paths_verified_input` → `{type}_reduced_output` |
-| `permissions_resolve/` | 3 | permissions | `run` | `paths_verified_input` → `permissions_resolved_output` |
-| `content_merge/` | 4-5 | content | `run_execution_merge`, `run_criteria_merge`, `run_includes_merge` | `{left}_input` + `{right}_input` → `{merged}_output` |
-| `universal_merge/` | 6 | trunk | `run` | `includes_merged_input` + `permissions_resolved_input` → `universal_format_output` |
-| `render_regroup/` | 7 | trunk | `run` | `universal_format_input` → `universal_render_output` |
-| `anthropic_resolve/` | 8 | anthropic | `run` | `universal_render_input` → `anthropic_render_output` |
-
-### Impure Boundary (`logic/impure/`) — 4 domain modules
-
-| Module | CC levels | Purpose |
-|--------|-----------|---------|
-| `gates/` | primitive, simple | Gate invocation primitives (`call_input_gate`, `call_output_gate`, `call_passthrough_gate`) and validation wrappers (`validate_input`, `validate_output`, `validate_passthrough`) |
-| `include_expand/` | simple, assembled | Gate-load include content (`gate_load_include` in simple), 7 concrete resolve callbacks wiring gates to expansion strategies (assembled) |
-| `registry/` | simple | Loads `tool_registry.toml` into typed `ToolRegistryEntry` models for L8 tool discovery |
-| `tree_mutate/` | primitive, simple, assembled | Tree mutation: list splice (primitive), pattern-matched write-back (simple), `walk_find_replace` loop (assembled) |
-
-### Pure Functions (`logic/pure/`) — 5 domain modules
-
-All pure functions take typed Pydantic models and return typed Pydantic models. No IO.
-
-| Module | CC levels | Purpose |
-|--------|-----------|---------|
-| `grant_derive/` | primitive, simple, composed, assembled | 6-phase security resolution (A-F): blocking checks, path intersection, capability derivation, implicit grants, output tool assembly |
-| `path_operations/` | simple, composed | Path containment collapse, path-capability intersection |
-| `security_validate/` | composed, assembled | Blocking violation checks against security declarations |
-| `tool_resolve/` | simple, composed | Model lookup by capability tier, custom tool discovery against registry, security boundary display |
-| `tree_walk/` | composed | Depth-first model tree walk, generic `walk_and_find` for locating include types |
-
-### Transform (`logic/transform/`) — 5 domain modules
-
-Data transformations — pure functions that reshape model structures.
-
-| Module | CC levels | Purpose |
-|--------|-----------|---------|
-| `codegen_clean/` | primitive, simple, composed | Post-codegen cleanup of generated Pydantic models |
-| `grant_expand/` | primitive, simple, composed | Explode abstract grants to vendor-specific tools/commands, build hooks |
-| `paths_resolve/` | simple, composed | Walk model tree resolving workspace-relative paths to absolute |
-| `section_regroup/` | primitive, simple, composed, assembled | Regroup 6 domain sections → 12 consumption sections (L7 transform) |
-| `vendor_compose/` | primitive, simple, composed, assembled | Compose Anthropic-specific sections from universal render + context |
-
-### Structure (`structure/`) — generated + hand-written
-
-**Generated** (`structure/gen/` — do NOT edit, regenerated by `generate_structures.py`):
-
-- `gen/schema/` — 13 checkpoint Pydantic models (one per pipeline stage): `agent_raw_definition.py` through `agent_anthropic_render.py`
-- `gen/fragment/` — 7 include-fragment models for gate-loading external content
-
-**Hand-written** (`structure/model/` and `structure/config/`):
-
-| File | Purpose |
-|------|---------|
-| `model/gate_types.py` | `GateResult` and `GateError` wrapping Nornir gate output |
-| `model/found_item.py` | `FoundInField`, `FoundInList`, `FoundItem` — location context for tree walk results |
-| `model/grant_entries.py` | Grant entry models for permissions resolution |
-| `model/blocking_violation.py` | `BlockingViolation` for security check failures |
-| `model/capability_tiers.py` | Capability tier models |
-| `model/anthropic_context.py` | `AnthropicContext` — intermediate context for L8 vendor composition |
-| `model/resolved_tool.py` | `ResolvedTool` descriptor and `ToolBuildRequest` for custom tool discovery |
-| `config/capability_tiers.py` | Static capability tier definitions |
-| `config/tool_registry.py` | `OutputFormat`, `WriteFrequency`, `OutputPathKind`, `ToolRegistryEntry` types for tool_registry.toml |
-
-### Tool-Level Files
-
-| File | Purpose |
-|------|---------|
-| `generate_structures.py` | Reads `schemas/agent-*.schema.json`, generates Pydantic models via `datamodel-code-generator` with `--use-title-as-name` |
-| `codegen_schemas.toml` | Configuration for `generate_structures.py` — maps schema files to output modules |
-| `DAG_EXPLAINED.md` | Full DAG diagram, level descriptions, gate inventory, naming convention |
-| `BRANCH_EXPLAINED.md` | Gate IO model, checkpoint principle, runner harness, work function contract |
-| `pyproject.toml` | Dependencies: loguru, markdown-it-py, pydantic. Entry point: `regin.cli:main` |
-
----
-
-## 8. Context Refresh Guide
-
-| If you need to understand... | Read |
-|------------------------------|------|
-| **The full DAG shape** | `tools/regin/DAG_EXPLAINED.md` |
-| **How gates work (IO, validation, conversion)** | `tools/regin/BRANCH_EXPLAINED.md` "What the Gates Do" |
-| **The uniform runner harness** | `tools/regin/BRANCH_EXPLAINED.md` "The Uniform Runner" |
-| **The work function contract** | `tools/regin/BRANCH_EXPLAINED.md` "The Work Function Contract" |
-| **What delta each branch transforms** | `tools/regin/BRANCH_EXPLAINED.md` "What the Delta Is" |
-| **Permission resolution algorithm** | `documentation/pipeline/SECURITY_RESOLUTION.md` (phases A-F) |
-| **Permission model design** | `documentation/pipeline/PERMISSIONS_CALCULATION_REVISED.md` |
-| **The universal format specification** | `documentation/pipeline_render/IDEAL_UNIVERSAL_FORMAT.md` |
-| **The render regroup (domain → consumption sections)** | `logic/transform/section_regroup/assembled.py` for implementation |
-| **Design decisions D1-D11** | `documentation/pipeline/CRITICAL_DECISIONS.md` |
-| **How Regin fits in the full pipeline** | `definitions/TOOL_BUILDING.md` |
-| **Anti-patterns and failure modes** | `tools/regin/CLAUDE.md` "You Will Get These Things Wrong" |
-| **Gleipnir constraints** | `.gleipnir/rules.toml` |
-| **File naming convention** | `tools/regin/DAG_EXPLAINED.md` "File Naming Convention" |
-
----
-
-## 9. Known Issues / Active Work
-
-### Current Build Scope
-
-Levels 0-8 are fully implemented. Orchestration is organized by domain under `logic/orchestrate/` — 9 domain directories, each with `orchestrate.py`. The `agent-anthropic-render` schema may still evolve as the render format matures.
-
-### Code Organization Convention
-
-The project follows the v2 zone architecture established in draupnir:
-- **Four logic zones:** `orchestrate/` (wiring), `impure/` (IO), `pure/` (computation), `transform/` (reshaping)
-- **CC-gated file tiers:** `primitive.py` (CC=1-2) → `simple.py` (CC=1-3) → `composed.py` (CC=3-4) → `assembled.py` (CC=5+)
-- **Domain directories:** each zone groups functions by domain (e.g. `pure/grant_derive/`, `transform/section_regroup/`)
-- **Empty `__init__.py`:** no re-exports, direct imports only
-
-### Predecessor Projects
-
-`transform_to_universal` and `universal_to_canonical` are the predecessors that Regin replaces. Their code is reference material for behavior only. Their architecture (sequential step naming, separate loaders/writers, flat file organization, mixed TOML/JSON checkpoints) is NOT to be followed.
+| Need | Read |
+|------|------|
+| what a single branch must do | `BRANCH_EXPLAINED.md`, then the two checkpoint schemas it sits between — the delta between them *is* the job |
+| field-level trace through L7 and L8 | `FIELD_MAPPINGS.md` |
+| how to run it | `src/regin/cli.py` — the CLI is the truth; `uv run regin <input.toml> -o <dir>` |
+| where a function goes / what zone / what level | `THE_LEVEL_SYSTEM.md` |
+| how external data becomes typed / a shape has no model | `HOW_DATA_ENTERS.md` |
+| what the gates guarantee, and the four gate patterns | `context/NORNIR_GATES_ELEMENT.md` |
+| what the checkpoint schemas allow | `~/.ai/smidja/verdandi/agent-builder/output/*.schema.json` |
+| what consumes the output | `context/GALDR_ELEMENT.md` — `anthropic_render.toml` is Galdr's data axis |
+| the models under `structure/gen/` | generated from the schemas; editing them does nothing. Change the Verdandi YAML and run the cascade |
+| the full forward cascade after an edit | `context/AGENT_BUILD_SYSTEM.md` § The forward cascade |
+| current state / what's left to build | `PLAN.md`, `BRANCH_PLAN.md` (+ `git log`) |
