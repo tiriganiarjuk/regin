@@ -1,6 +1,6 @@
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <!-- DO NOT EDIT THIS BLOCK. Before editing ANY part of this file, you MUST  -->
-<!-- first read /Users/johnny/.ai/CONTEXT_MANAGEMENT_SYSTEM.md — it defines  -->
+<!-- first read /Users/johnny/ai/CONTEXT_MANAGEMENT_SYSTEM.md — it defines  -->
 <!-- what this file is for and what may NOT go in it.                        -->
 <!--                                                                          -->
 <!-- This file is a MAP (a router), not a source. Its only job is to tell    -->
@@ -29,8 +29,8 @@ The definition resolver: it takes an agent definition as authored and resolves i
 
 ## Orientation gate — read these, in this order, to be oriented
 
-1. `~/.ai/smidja/galdr/context/AGENT_BUILD_SYSTEM.md` — why the pipeline exists at all: determinism as the goal, and the double gate that makes an LLM-written transform safe to have in a pipeline.
-2. `~/.ai/smidja/galdr/context/REGIN_ELEMENT.md` — Regin's own reason for being: the delta principle, the uniform runner, why checkpoints are written to disk, and why L7 regroups.
+1. `~/ai/smidja/galdr/context/AGENT_BUILD_SYSTEM.md` — why the pipeline exists at all: determinism as the goal, and the double gate that makes an LLM-written transform safe to have in a pipeline.
+2. `~/ai/smidja/galdr/context/REGIN_ELEMENT.md` — Regin's own reason for being: the delta principle, the uniform runner, why checkpoints are written to disk, and why L7 regroups.
 
 > **This is a DAG, not a sequence.** It is the single thing every previous reader got
 > wrong, and module names no longer encode order at all — the shape lives only in the
@@ -61,7 +61,7 @@ The definition resolver: it takes an agent definition as authored and resolves i
 | where a function goes / what zone / what level | `THE_LEVEL_SYSTEM.md` |
 | how external data becomes typed / a shape has no model | `HOW_DATA_ENTERS.md` |
 | what the gates guarantee, and the four gate patterns | `context/NORNIR_GATES_ELEMENT.md` |
-| what the checkpoint schemas allow | `~/.ai/smidja/verdandi/agent-builder/output/*.schema.json` |
+| what the checkpoint schemas allow | `~/ai/smidja/verdandi/agent-builder/output/*.schema.json` |
 | what consumes the output | `context/GALDR_ELEMENT.md` — `anthropic_render.toml` is Galdr's data axis |
 | the models under `structure/gen/` | generated from the schemas; editing them does nothing. Change the Verdandi YAML and run the cascade |
 | the full forward cascade after an edit | `context/AGENT_BUILD_SYSTEM.md` § The forward cascade |

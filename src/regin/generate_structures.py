@@ -23,7 +23,7 @@ from regin.logic.transform.codegen_clean.primitive import strip_future_annotatio
 
 PACKAGE_ROOT = Path(__file__).resolve().parent
 WORKSPACE = PACKAGE_ROOT.parents[3]
-SMIDJA = Path.home() / ".ai" / "smidja"
+SMIDJA = Path.home() / "ai" / "smidja"
 SCHEMAS_DIR = SMIDJA / "verdandi" / "agent-builder" / "output"
 STRUCTURES_DIR = PACKAGE_ROOT / "structure"
 CONFIG_PATH = PACKAGE_ROOT / "codegen_schemas.toml"

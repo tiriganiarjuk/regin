@@ -3,7 +3,7 @@
 CC=1. No error checking — caller decides what to do with the result.
 
 NornirGate is a type alias for compiled Rust/PyO3 gate modules (.so files
-at ~/.ai/tools/lib/gate_*.cpython-313-darwin.so). Each gate module has a
+at ~/ai/tools/lib/gate_*.cpython-313-darwin.so). Each gate module has a
 .validate() method whose signature depends on the gate kind:
 
   Input gates:       gate.validate(file_path: str) -> dict

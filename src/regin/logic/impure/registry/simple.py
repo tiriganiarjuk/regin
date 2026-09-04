@@ -17,7 +17,7 @@ from pathlib import Path
 
 from regin.structure.config.tool_registry import ToolRegistryEntry
 
-REGISTRY_PATH = Path.home() / ".ai" / "smidja" / "nornir" / "tool_registry.toml"
+REGISTRY_PATH = Path.home() / "ai" / "smidja" / "nornir" / "tool_registry.toml"
 
 
 def load_registry(path: Path = REGISTRY_PATH) -> list[ToolRegistryEntry]:

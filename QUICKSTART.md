@@ -24,7 +24,7 @@ regin /path/to/agent-definition.toml -o /path/to/output-dir
 # e.g., agent-rebuilder.toml -> agent-rebuilder/
 ```
 
-**Prerequisites:** Nornir gate `.so` modules must be compiled and present at `~/.ai/tools/lib/` (or override via `REGIN_GATE_LIB` env var). JSON Schema files must be current at `schemas/agent-*.schema.json`.
+**Prerequisites:** Nornir gate `.so` modules must be compiled and present at `~/ai/tools/lib/` (or override via `REGIN_GATE_LIB` env var). JSON Schema files must be current at `schemas/agent-*.schema.json`.
 
 ---
 

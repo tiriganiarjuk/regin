@@ -67,7 +67,7 @@ Create a frozen Pydantic model wrapping this. Keep it minimal — just the shape
 
 ### 0c. `functions/impure/gates.py` — Gate loading boundary
 
-The ONE impure boundary for gate IO. Loads compiled `.so` gate modules from `~/.ai/tools/lib/`.
+The ONE impure boundary for gate IO. Loads compiled `.so` gate modules from `~/ai/tools/lib/`.
 Three functions:
 - `load_gate(name: str) -> module` — importlib.util loads the `.so`, caches in dict
 - `call_input_gate(gate_name: str, file_path: Path) -> str` — calls `gate.validate(str(path))`, returns JSON string or raises
