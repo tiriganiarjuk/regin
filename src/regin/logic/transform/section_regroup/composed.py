@@ -16,7 +16,7 @@ consumption model reflects how the rendered prompt is consumed (by the LLM
 reading the prompt top-to-bottom).
 """
 
-from regin.structure.gen.schema.agent_universal_format import AgentUniversalFormat, StringProse
+from regin.structure.gen.schema.agent_universal_format import AgentUniversalFormat
 from regin.structure.gen.schema import agent_universal_render as render
 
 from regin.logic.transform.section_regroup.simple import guard_return_field
@@ -85,11 +85,16 @@ def regroup_input(source: AgentUniversalFormat) -> render.Input:
     Combines three authoring concerns into one consumption block: the dispatch
     config (format, delivery, parameters), the validation schema (input_schema),
     and the context resources (required + available files the agent references).
+
+    Authoring keeps the two context lists under one `context` group; the render
+    schema carries them as siblings. The group has no rendering meaning — no
+    heading, no control surface — so it is flattened here rather than passed on.
     """
     dispatch = source.indirect.dispatch
     schema = source.security.security_schema
     context = source.security.context
-    has_context = context and (context.context_required or context.context_available)
+    required = context.context_required if context else None
+    available = context.context_available if context else None
     return render.Input(
         description=render.InputDescription(dispatch.dispatch_input_description.root),
         format=render.DispatchInputFormat(dispatch.dispatch_input_format.value),
@@ -98,9 +103,12 @@ def regroup_input(source: AgentUniversalFormat) -> render.Input:
         parameters=render.DispatchParameters.model_validate_json(
             dispatch.dispatch_parameters.model_dump_json(by_alias=True)
         ) if dispatch.dispatch_parameters else None,
-        context=render.ContextResources.model_validate_json(
-            context.model_dump_json(by_alias=True)
-        ) if has_context else None,
+        context_required=render.ContextRequired.model_validate_json(
+            required.model_dump_json(by_alias=True)
+        ) if required else None,
+        context_available=render.ContextAvailable.model_validate_json(
+            available.model_dump_json(by_alias=True)
+        ) if available else None,
     )
 
 
