@@ -1,6 +1,8 @@
 """Typed models for tool_registry.toml entries.
 
-Hand-written — not generated from JSON Schema.
+Hand-written — not generated from JSON Schema. The registry is validated
+against nornir/schemas/tools/tool-registry.schema.json by the reader gate
+before it reaches these models; keep the two in step when either changes.
 The tool registry is configuration, not a pipeline checkpoint.
 """
 
@@ -38,3 +40,11 @@ class ToolRegistryEntry(BaseModel):
     directory_path: str | None = None
     name_extension: str | None = None
     name_suffix: str | None = None
+
+
+class ToolRegistry(BaseModel):
+    """The whole registry document: {"tools": [...]} as the reader returns it."""
+
+    model_config = ConfigDict(frozen=True)
+
+    tools: list[ToolRegistryEntry]

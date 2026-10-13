@@ -20,6 +20,7 @@ from regin.logic.pure.tool_resolve.composed import (
 )
 from regin.logic.transform.grant_expand.composed import resolve_grants_and_hooks
 from regin.logic.transform.vendor_compose.assembled import compose_anthropic_sections
+from regin.structure.config.registry_location import RegistryLocation
 from regin.structure.gen.schema.agent_universal_render import AgentUniversalRender
 from regin.structure.model.anthropic_context import AnthropicContext
 
@@ -28,7 +29,7 @@ def run(input_path: Path, output_path: Path) -> str:
     """Execute the anthropic resolve branch. Returns output JSON."""
     json_in = validate_input(gate_universal_render_input, input_path)
     source = AgentUniversalRender.model_validate_json(json_in)
-    registry = load_registry()
+    registry = load_registry(RegistryLocation())
     model = resolve_model(source.identity.capability_tier)
     resolved_tool = discover_tool(source.writing_output, registry)
     explicit_tools, explicit_commands, hooks = resolve_grants_and_hooks(source, resolved_tool)

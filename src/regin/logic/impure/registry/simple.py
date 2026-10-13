@@ -1,32 +1,26 @@
-"""Tool registry loader — the non-gate IO boundary for L8.
+"""Tool registry loader — the L8 registry read, through a reader gate.
 
-CC=1-3. Impure — reads TOML from disk.
+CC=1-2. Impure — the read happens in a compiled reader (read_toml_validate_json),
+which validates the TOML against nornir/schemas/tools/tool-registry.schema.json
+and returns a JSON string. Python never parses TOML.
 
-The tool registry is external configuration (not a pipeline checkpoint) that
-maps output specifications to tool binaries. The registry lives in the nornir
-project (not regin) because tool binaries are deployment-specific, not
-definition-specific — the same agent definition should resolve to different
-tool binaries depending on the deployment environment.
-
-This is the only non-gate IO operation in L8. All other IO in the pipeline
-goes through gate modules.
+The registry lives in the nornir project (not regin) because tool binaries are
+deployment-specific, not definition-specific — the same agent definition should
+resolve to different tool binaries depending on the deployment environment.
 """
 
-import tomllib
-from pathlib import Path
-
-from regin.structure.config.tool_registry import ToolRegistryEntry
-
-REGISTRY_PATH = Path.home() / "ai" / "smidja" / "nornir" / "tool_registry.toml"
+from regin.logic.impure.registry.ffi import read_registry
+from regin.logic.impure.registry.primitive import ai_home
+from regin.structure.config.registry_location import RegistryLocation
+from regin.structure.config.tool_registry import ToolRegistry, ToolRegistryEntry
 
 
-def load_registry(path: Path = REGISTRY_PATH) -> list[ToolRegistryEntry]:
-    """Load tool registry entries from TOML. Default path points to nornir's registry.
-
-    Returns a list of ToolRegistryEntry models, each describing one output tool
-    binary with its matching criteria (format, write frequency, paths) and
-    invocation details (binary name, invocation template).
-    """
-    with path.open("rb") as file_handle:
-        data = tomllib.load(file_handle)
-    return [ToolRegistryEntry.model_validate(entry) for entry in data["tools"]]
+def load_registry(location: RegistryLocation) -> list[ToolRegistryEntry]:
+    """Load tool registry entries via the TOML reader. Raises ValueError on validation failure."""
+    base = ai_home()
+    json_text = read_registry(
+        str(base / location.registry_path),
+        location.schema_name,
+        str(base / location.schema_dir),
+    )
+    return ToolRegistry.model_validate_json(json_text).tools
