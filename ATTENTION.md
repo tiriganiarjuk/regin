@@ -27,6 +27,18 @@ fails until the wrapper is fixed:
 
 - `src/regin/logic/impure/registry/ffi.py` — `read_registry`, consumed by `registry/simple.py`
 
+How it shows: every run completes L0–L7 and stops at L8 `anthropic_resolve` with
+`ValidationError: 1 validation error for ToolRegistry — JSON input should be string`, raised at
+`registry/simple.py:26`, where the reader's result dict is handed to
+`ToolRegistry.model_validate_json` as if it were the JSON text. Seen running
+`uv run --project ~/ai/smidja/regin regin ~/ai/spaces/bragi/definitions/agents/agent-quality-auditor.toml -o <dir>`.
+
+What waits on it: every agent regeneration. Bragi's agent templates and prompt sources were
+corrected (bragi `029e255`) and reach the generated agents only through a Regin run, then Galdr.
+
+The reader also has a CLI face — `read_toml_validate_json <file> <schema_name> <schema_dir>`:
+the validated JSON on stdout and exit 0, or the failure class on stderr's first line and exit 1.
+
 ## The fix
 
 Type the result at the wrapper: a frozen model of the contract in `structure/`, validated from
