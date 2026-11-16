@@ -58,14 +58,15 @@ def collapse_path_containment(grants: dict[str, set[str]]) -> dict[str, list[str
     grant model to its minimal permission set.
 
     Algorithm: sort paths by length (shortest first, since shorter paths are
-    potential ancestors), then for each path check if any already-kept path
+    potential ancestors; equal lengths in alphabetical order, so the kept list
+    is the same on every run), then for each path check if any already-kept path
     is an ancestor. If so, the current path is "absorbed" — its permission
     is already covered. The kept list grows monotonically with non-contained
     paths.
     """
     result: dict[str, list[str]] = {}
     for capability, path_set in grants.items():
-        sorted_paths = sorted(path_set, key=len)
+        sorted_paths = sorted(sorted(path_set), key=len)
         kept: list[str] = []
         for path in sorted_paths:
             absorbed = any(is_subpath(path, ancestor) for ancestor in kept)
