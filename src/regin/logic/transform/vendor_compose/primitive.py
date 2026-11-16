@@ -8,20 +8,24 @@ into vendor-specific primitive modules, but the universal-to-vendor boundary
 would remain at the same pipeline point (after L7 regroup, in L8).
 """
 
-from regin.structure.gen.schema import agent_anthropic_render as anthr
+from regin.structure.gen.schema.agent_anthropic_render import (
+    FilesystemPermissions as AnthrFilesystemPermissions,
+    PathExistsAbsolute as AnthrPathExistsAbsolute,
+    SecurityBoundaryAnthropic as AnthrSecurityBoundaryAnthropic,
+)
 
 
 def compose_security_boundary(
-    filesystem_permissions: anthr.FilesystemPermissions | None,
+    filesystem_permissions: AnthrFilesystemPermissions | None,
     workspace_path: str,
-) -> anthr.SecurityBoundaryAnthropic:
+) -> AnthrSecurityBoundaryAnthropic:
     """Anthropic security boundary — adds filesystem permissions to universal model.
 
     Filesystem permission entries are a human-readable summary of
     tool/command grants per path, generated in L8 for inclusion in the
     rendered prompt so the agent knows what tools are available where.
     """
-    return anthr.SecurityBoundaryAnthropic(
-        workspace_path=anthr.PathExistsAbsolute(workspace_path),
+    return AnthrSecurityBoundaryAnthropic(
+        workspace_path=AnthrPathExistsAbsolute(workspace_path),
         filesystem_permissions=filesystem_permissions,
     )

@@ -12,8 +12,21 @@ security_boundary (adds display entries), and writing_output/critical_rules
 has no universal equivalent.
 """
 
-from regin.structure.gen.schema import agent_universal_render as render
-from regin.structure.gen.schema import agent_anthropic_render as anthr
+from regin.structure.gen.schema.agent_universal_render import AgentUniversalRender as RenderAgentUniversalRender
+from regin.structure.gen.schema.agent_anthropic_render import (
+    AgentAnthropicRender as AnthrAgentAnthropicRender,
+    AgentDescription as AnthrAgentDescription,
+    AntiPatterns as AnthrAntiPatterns,
+    Constraints as AnthrConstraints,
+    Dispatcher as AnthrDispatcher,
+    Examples as AnthrExamples,
+    FailureCriteria as AnthrFailureCriteria,
+    Input as AnthrInput,
+    Instructions as AnthrInstructions,
+    Output as AnthrOutput,
+    ReturnFormat as AnthrReturnFormat,
+    SuccessCriteria as AnthrSuccessCriteria,
+)
 from regin.structure.model.anthropic_context import AnthropicContext
 
 from regin.logic.transform.vendor_compose.primitive import compose_security_boundary
@@ -29,9 +42,9 @@ from regin.logic.transform.vendor_compose.composed import (
 
 
 def compose_anthropic_sections(
-    source: render.AgentUniversalRender,
+    source: RenderAgentUniversalRender,
     context: AnthropicContext,
-) -> anthr.AgentAnthropicRender:
+) -> AnthrAgentAnthropicRender:
     """Assemble every Anthropic section from universal render + context.
 
     The AnthropicContext carries everything resolved in L8 before this point:
@@ -42,24 +55,24 @@ def compose_anthropic_sections(
     identity = compose_identity(source.identity)
     workspace_path = source.security_boundary.workspace_path.root if source.security_boundary else ""
 
-    return anthr.AgentAnthropicRender(
+    return AnthrAgentAnthropicRender(
         identity=identity,
         security_boundary=compose_security_boundary(context.filesystem_permissions, workspace_path),
-        input=pass_through(source.input, anthr.Input),
-        output=pass_through(source.output, anthr.Output),
+        input=pass_through(source.input, AnthrInput),
+        output=pass_through(source.output, AnthrOutput),
         writing_output=compose_writing_output(context.resolved_tool, source.writing_output),
-        constraints=pass_through(source.constraints, anthr.Constraints),
-        anti_patterns=pass_through(source.anti_patterns, anthr.AntiPatterns),
-        success_criteria=pass_through(source.success_criteria, anthr.SuccessCriteria),
-        failure_criteria=pass_through(source.failure_criteria, anthr.FailureCriteria),
-        return_format=pass_through(source.return_format, anthr.ReturnFormat),
-        dispatcher=pass_through(source.dispatcher, anthr.Dispatcher),
-        instructions=pass_through(source.instructions, anthr.Instructions),
-        examples=pass_through(source.examples, anthr.Examples),
+        constraints=pass_through(source.constraints, AnthrConstraints),
+        anti_patterns=pass_through(source.anti_patterns, AnthrAntiPatterns),
+        success_criteria=pass_through(source.success_criteria, AnthrSuccessCriteria),
+        failure_criteria=pass_through(source.failure_criteria, AnthrFailureCriteria),
+        return_format=pass_through(source.return_format, AnthrReturnFormat),
+        dispatcher=pass_through(source.dispatcher, AnthrDispatcher),
+        instructions=pass_through(source.instructions, AnthrInstructions),
+        examples=pass_through(source.examples, AnthrExamples),
         critical_rules=compose_critical_rules(context.resolved_tool, source.writing_output, workspace_path),
         frontmatter=compose_frontmatter(
             identity,
-            anthr.AgentDescription(source.dispatcher.agent_description.root),
+            AnthrAgentDescription(source.dispatcher.agent_description.root),
             context,
         ),
     )

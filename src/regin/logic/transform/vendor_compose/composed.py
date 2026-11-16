@@ -11,14 +11,33 @@ the agent needs to produce correctly formatted output.
 """
 
 from regin.structure.model.resolved_tool import ResolvedTool
-from regin.structure.gen.schema import agent_universal_render as render
-from regin.structure.gen.schema import agent_anthropic_render as anthr
+from regin.structure.gen.schema.agent_universal_render import (
+    EnforcementOutputTool as RenderEnforcementOutputTool,
+    WritingOutput as RenderWritingOutput,
+)
+from regin.structure.gen.schema.agent_anthropic_render import (
+    Boolean as AnthrBoolean,
+    CriticalRules as AnthrCriticalRules,
+    FilenameTemplate as AnthrFilenameTemplate,
+    Integer as AnthrInteger,
+    InvocationDisplay as AnthrInvocationDisplay,
+    InvocationVariant as AnthrInvocationVariant,
+    OutputToolBatchSize as AnthrOutputToolBatchSize,
+    OutputToolNameNeeded as AnthrOutputToolNameNeeded,
+    OutputToolSchemaXAbs as AnthrOutputToolSchemaXAbs,
+    PathAbsolute as AnthrPathAbsolute,
+    PathExistsAbsolute as AnthrPathExistsAbsolute,
+    SnakeString as AnthrSnakeString,
+    ToolName as AnthrToolName,
+    WritingOutputAnthropic as AnthrWritingOutputAnthropic,
+)
+
 
 def compose_critical_rules(
     resolved_tool: ResolvedTool | None,
-    writing_output: render.WritingOutput | None,
+    writing_output: RenderWritingOutput | None,
     workspace_path: str,
-) -> anthr.CriticalRules:
+) -> AnthrCriticalRules:
     """Compose critical rules — the highest-priority behavioral constraints.
 
     "Critical rules" are the subset of constraints that must appear prominently
@@ -35,28 +54,28 @@ def compose_critical_rules(
 
     if has_tool and writing_output is not None:
         output_tool = writing_output.writing_output
-        tool_name = anthr.ToolName(anthr.SnakeString(resolved_tool.tool_name))
+        tool_name = AnthrToolName(AnthrSnakeString(resolved_tool.tool_name))
         if output_tool.output_tool_name_needed is not None:
-            name_needed = anthr.OutputToolNameNeeded(
-                anthr.Boolean(output_tool.output_tool_name_needed.root)
+            name_needed = AnthrOutputToolNameNeeded(
+                AnthrBoolean(output_tool.output_tool_name_needed.root)
             )
         if output_tool.output_tool_batch_size is not None:
-            batch_size = anthr.OutputToolBatchSize(
-                anthr.Integer(output_tool.output_tool_batch_size.root)
+            batch_size = AnthrOutputToolBatchSize(
+                AnthrInteger(output_tool.output_tool_batch_size.root)
             )
 
-    return anthr.CriticalRules(
-        has_output_tool=anthr.Boolean(has_tool),
+    return AnthrCriticalRules(
+        has_output_tool=AnthrBoolean(has_tool),
         tool_name=tool_name,
         name_needed=name_needed,
         batch_size=batch_size,
-        workspace_path=anthr.PathExistsAbsolute(workspace_path) if workspace_path else None,
+        workspace_path=AnthrPathExistsAbsolute(workspace_path) if workspace_path else None,
     )
 
 
 def map_enforcement_fields(
-    enforcement_tool: render.EnforcementOutputTool,
-) -> dict[str, anthr.FilenameTemplate | anthr.OutputToolBatchSize | anthr.OutputToolSchemaXAbs | anthr.PathAbsolute | None]:
+    enforcement_tool: RenderEnforcementOutputTool,
+) -> dict[str, AnthrFilenameTemplate | AnthrOutputToolBatchSize | AnthrOutputToolSchemaXAbs | AnthrPathAbsolute | None]:
     """Map enforcement output tool fields from universal to Anthropic types.
 
     Each field is independently nullable — the output tool spec is sparse by
@@ -66,23 +85,23 @@ def map_enforcement_fields(
     """
     return {
         "name_pattern": (
-            anthr.FilenameTemplate(enforcement_tool.output_tool_name_pattern.root)
+            AnthrFilenameTemplate(enforcement_tool.output_tool_name_pattern.root)
             if enforcement_tool.output_tool_name_pattern else None
         ),
         "batch_size": (
-            anthr.OutputToolBatchSize(anthr.Integer(enforcement_tool.output_tool_batch_size.root))
+            AnthrOutputToolBatchSize(AnthrInteger(enforcement_tool.output_tool_batch_size.root))
             if enforcement_tool.output_tool_batch_size else None
         ),
         "schema_path": (
-            anthr.OutputToolSchemaXAbs(enforcement_tool.output_tool_schema_path.root)
+            AnthrOutputToolSchemaXAbs(enforcement_tool.output_tool_schema_path.root)
             if enforcement_tool.output_tool_schema_path else None
         ),
         "file_path": (
-            anthr.PathAbsolute(enforcement_tool.output_tool_file_path.root)
+            AnthrPathAbsolute(enforcement_tool.output_tool_file_path.root)
             if enforcement_tool.output_tool_file_path else None
         ),
         "directory_path": (
-            anthr.PathAbsolute(enforcement_tool.output_tool_directory_path.root)
+            AnthrPathAbsolute(enforcement_tool.output_tool_directory_path.root)
             if enforcement_tool.output_tool_directory_path else None
         ),
     }
@@ -90,8 +109,8 @@ def map_enforcement_fields(
 
 def compose_writing_output(
     resolved_tool: ResolvedTool | None,
-    writing_output: render.WritingOutput | None,
-) -> anthr.WritingOutputAnthropic | None:
+    writing_output: RenderWritingOutput | None,
+) -> AnthrWritingOutputAnthropic | None:
     """Populate vendor-specific writing output with resolved tool details.
 
     The invocation_variant ("with-name" or "no-name") determines which
@@ -110,11 +129,11 @@ def compose_writing_output(
     )
     fields = map_enforcement_fields(output_tool)
 
-    return anthr.WritingOutputAnthropic(
-        tool_name=anthr.ToolName(anthr.SnakeString(resolved_tool.tool_name)),
-        invocation_variant=anthr.InvocationVariant(resolved_tool.invocation_variant),
-        invocation_display=anthr.InvocationDisplay(resolved_tool.invocation_display),
-        name_needed=anthr.OutputToolNameNeeded(anthr.Boolean(name_needed)),
+    return AnthrWritingOutputAnthropic(
+        tool_name=AnthrToolName(AnthrSnakeString(resolved_tool.tool_name)),
+        invocation_variant=AnthrInvocationVariant(resolved_tool.invocation_variant),
+        invocation_display=AnthrInvocationDisplay(resolved_tool.invocation_display),
+        name_needed=AnthrOutputToolNameNeeded(AnthrBoolean(name_needed)),
         **fields,
     )
 

@@ -12,8 +12,22 @@ resolved model (the concrete Anthropic model name).
 
 from pydantic import BaseModel
 
-from regin.structure.gen.schema import agent_universal_render as render
-from regin.structure.gen.schema import agent_anthropic_render as anthr
+from regin.structure.gen.schema.agent_universal_render import Identity as RenderIdentity
+from regin.structure.gen.schema.agent_anthropic_render import (
+    AgentDescription as AnthrAgentDescription,
+    AgentTitle as AnthrAgentTitle,
+    Frontmatter as AnthrFrontmatter,
+    FrontmatterTools as AnthrFrontmatterTools,
+    IdentityAnthropic as AnthrIdentityAnthropic,
+    PascalString as AnthrPascalString,
+    PermissionMode as AnthrPermissionMode,
+    RoleDescription as AnthrRoleDescription,
+    RoleExpertise as AnthrRoleExpertise,
+    RoleResponsibility as AnthrRoleResponsibility,
+    StringText as AnthrStringText,
+    TitleString as AnthrTitleString,
+    ToolPathEntries as AnthrToolPathEntries,
+)
 from regin.structure.model.anthropic_context import AnthropicContext
 
 
@@ -36,30 +50,30 @@ def pass_through(
 
 
 def compose_identity(
-    source: render.Identity,
-) -> anthr.IdentityAnthropic:
+    source: RenderIdentity,
+) -> AnthrIdentityAnthropic:
     """Compose Anthropic identity from universal identity.
 
     Pass-through with type conversion. Model resolution is handled
     separately at the frontmatter level.
     """
-    return anthr.IdentityAnthropic(
-        title=anthr.AgentTitle(anthr.TitleString(source.title.root)),
-        role_identity=anthr.StringText(source.role_identity.root),
-        role_responsibility=anthr.RoleResponsibility(source.role_responsibility.root),
+    return AnthrIdentityAnthropic(
+        title=AnthrAgentTitle(AnthrTitleString(source.title.root)),
+        role_identity=AnthrStringText(source.role_identity.root),
+        role_responsibility=AnthrRoleResponsibility(source.role_responsibility.root),
         role_description=(
-            anthr.RoleDescription(source.role_description.root)
+            AnthrRoleDescription(source.role_description.root)
             if source.role_description else None
         ),
         role_expertise=(
-            anthr.RoleExpertise.model_validate_json(
+            AnthrRoleExpertise.model_validate_json(
                 source.role_expertise.model_dump_json(by_alias=True)
             ) if source.role_expertise else None
         ),
     )
 
 
-def collect_tool_names(merged_tools: anthr.ToolPathEntries | None) -> set[str]:
+def collect_tool_names(merged_tools: AnthrToolPathEntries | None) -> set[str]:
     """Collect unique tool names from merged entries, always including Bash.
 
     Bash is always included because it is the base tool that all agents have
@@ -75,10 +89,10 @@ def collect_tool_names(merged_tools: anthr.ToolPathEntries | None) -> set[str]:
 
 
 def compose_frontmatter(
-    identity: anthr.IdentityAnthropic,
-    description: anthr.AgentDescription,
+    identity: AnthrIdentityAnthropic,
+    description: AnthrAgentDescription,
     context: AnthropicContext,
-) -> anthr.Frontmatter:
+) -> AnthrFrontmatter:
     """Compose frontmatter — the Anthropic-specific YAML preamble.
 
     Frontmatter has no universal equivalent — it declares the agent's identity,
@@ -87,13 +101,13 @@ def compose_frontmatter(
     regin-managed agents handle their own permission enforcement via hooks
     rather than the interactive permission dialog.
     """
-    return anthr.Frontmatter(
+    return AnthrFrontmatter(
         name=identity.title,
         description=description,
         model=context.model,
-        permission_mode=anthr.PermissionMode.bypassPermissions,
-        tools=anthr.FrontmatterTools(
-            [anthr.PascalString(name) for name in sorted(collect_tool_names(context.merged_tools))]
+        permission_mode=AnthrPermissionMode.bypassPermissions,
+        tools=AnthrFrontmatterTools(
+            [AnthrPascalString(name) for name in sorted(collect_tool_names(context.merged_tools))]
         ),
         hooks=context.hooks,
     )

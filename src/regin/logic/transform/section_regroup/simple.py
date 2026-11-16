@@ -14,7 +14,15 @@ the renderer interprets as "omit this section from the prompt entirely."
 from pydantic import BaseModel
 
 from regin.structure.gen.schema.agent_universal_format import AgentUniversalFormat, StringProse
-from regin.structure.gen.schema import agent_universal_render as render
+from regin.structure.gen.schema.agent_universal_render import (
+    EnforcementExplicitGrants as RenderEnforcementExplicitGrants,
+    EnforcementImplicitGrants as RenderEnforcementImplicitGrants,
+    EnforcementOutputTool as RenderEnforcementOutputTool,
+    ImplicitGrants as RenderImplicitGrants,
+    PathExistsAbsolute as RenderPathExistsAbsolute,
+    SecurityBoundary as RenderSecurityBoundary,
+    WritingOutput as RenderWritingOutput,
+)
 
 
 def wrap_nullable(
@@ -41,7 +49,7 @@ def wrap_nullable(
     return wrapper_type(**{field_name: inner})
 
 
-def regroup_security_boundary(source: AgentUniversalFormat) -> render.SecurityBoundary:
+def regroup_security_boundary(source: AgentUniversalFormat) -> RenderSecurityBoundary:
     """Assemble security boundary from security.paths + enforcement.explicit_grants.
 
     Two assembly paths based on grant presence. When no explicit grants exist
@@ -53,18 +61,18 @@ def regroup_security_boundary(source: AgentUniversalFormat) -> render.SecurityBo
     grants = source.enforcement.enforcement_explicit_grants
     has_grants = any([grants.read, grants.search, grants.inspect, grants.write, grants.edit, grants.append])
     if not has_grants:
-        return render.SecurityBoundary(
-            workspace_path=render.PathExistsAbsolute(source.security.security_paths.paths_workspace.root),
+        return RenderSecurityBoundary(
+            workspace_path=RenderPathExistsAbsolute(source.security.security_paths.paths_workspace.root),
         )
-    return render.SecurityBoundary(
-        workspace_path=render.PathExistsAbsolute(source.security.security_paths.paths_workspace.root),
-        capabilities=render.EnforcementExplicitGrants.model_validate_json(
+    return RenderSecurityBoundary(
+        workspace_path=RenderPathExistsAbsolute(source.security.security_paths.paths_workspace.root),
+        capabilities=RenderEnforcementExplicitGrants.model_validate_json(
             grants.model_dump_json(by_alias=True, exclude_unset=True, exclude_none=True)
         ),
     )
 
 
-def regroup_implicit_grants(source: AgentUniversalFormat) -> render.ImplicitGrants | None:
+def regroup_implicit_grants(source: AgentUniversalFormat) -> RenderImplicitGrants | None:
     """Assemble implicit grants section. Returns None when no implicit grants exist.
 
     None signals downstream that the "Implicit Grants" prompt section should be
@@ -75,14 +83,14 @@ def regroup_implicit_grants(source: AgentUniversalFormat) -> render.ImplicitGran
     has_grants = any([grants.read, grants.write, grants.edit])
     if not has_grants:
         return None
-    return render.ImplicitGrants(
-        capabilities=render.EnforcementImplicitGrants.model_validate_json(
+    return RenderImplicitGrants(
+        capabilities=RenderEnforcementImplicitGrants.model_validate_json(
             grants.model_dump_json(by_alias=True, exclude_unset=True, exclude_none=True)
         ),
     )
 
 
-def regroup_writing_output(source: AgentUniversalFormat) -> render.WritingOutput | None:
+def regroup_writing_output(source: AgentUniversalFormat) -> RenderWritingOutput | None:
     """Wrap enforcement output tool. None for text/markdown agents.
 
     Returns None when the output tool was set to None in L3 (text/markdown
@@ -92,8 +100,8 @@ def regroup_writing_output(source: AgentUniversalFormat) -> render.WritingOutput
     tool = source.enforcement.enforcement_output_tool
     if tool is None:
         return None
-    return render.WritingOutput(
-        writing_output=render.EnforcementOutputTool.model_validate_json(
+    return RenderWritingOutput(
+        writing_output=RenderEnforcementOutputTool.model_validate_json(
             tool.model_dump_json(by_alias=True, exclude_unset=True, exclude_none=True)
         ),
     )

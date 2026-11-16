@@ -15,7 +15,17 @@ because they draw from multiple domain sections.
 """
 
 from regin.structure.gen.schema.agent_universal_format import AgentUniversalFormat
-from regin.structure.gen.schema import agent_universal_render as render
+from regin.structure.gen.schema.agent_universal_render import (
+    AgentUniversalRender as RenderAgentUniversalRender,
+    AntiPatterns as RenderAntiPatterns,
+    Constraints as RenderConstraints,
+    FailureCriteria as RenderFailureCriteria,
+    FailureCriteria1 as RenderFailureCriteria1,
+    GuardrailsAntiPatterns as RenderGuardrailsAntiPatterns,
+    GuardrailsConstraints as RenderGuardrailsConstraints,
+    SuccessCriteria as RenderSuccessCriteria,
+    SuccessCriteria1 as RenderSuccessCriteria1,
+)
 
 from regin.logic.transform.section_regroup.primitive import (
     regroup_examples,
@@ -36,7 +46,7 @@ from regin.logic.transform.section_regroup.composed import (
 )
 
 
-def regroup(source: AgentUniversalFormat) -> render.AgentUniversalRender:
+def regroup(source: AgentUniversalFormat) -> RenderAgentUniversalRender:
     """Regroup 6 domain sections into 12 consumption sections.
 
     Each call delegates to a level-appropriate function: primitive for direct
@@ -44,7 +54,7 @@ def regroup(source: AgentUniversalFormat) -> render.AgentUniversalRender:
     assembly. The result is the universal render model ready for L8 vendor
     composition.
     """
-    return render.AgentUniversalRender(
+    return RenderAgentUniversalRender(
         identity=regroup_identity(source),
         security_boundary=regroup_security_boundary(source),
         implicit_grants=regroup_implicit_grants(source),
@@ -53,20 +63,20 @@ def regroup(source: AgentUniversalFormat) -> render.AgentUniversalRender:
         writing_output=regroup_writing_output(source),
         constraints=wrap_nullable(
             source.criteria.guardrails.guardrails_constraints,
-            render.Constraints, "rules", render.GuardrailsConstraints,
+            RenderConstraints, "rules", RenderGuardrailsConstraints,
         ),
         anti_patterns=wrap_nullable(
             source.criteria.guardrails.guardrails_anti_patterns,
-            render.AntiPatterns, "patterns", render.GuardrailsAntiPatterns,
+            RenderAntiPatterns, "patterns", RenderGuardrailsAntiPatterns,
         ),
         return_format=regroup_return_format(source),
         success_criteria=wrap_nullable(
             source.criteria.success_criteria,
-            render.SuccessCriteria, "criteria", render.SuccessCriteria1,
+            RenderSuccessCriteria, "criteria", RenderSuccessCriteria1,
         ),
         failure_criteria=wrap_nullable(
             source.criteria.failure_criteria,
-            render.FailureCriteria, "criteria", render.FailureCriteria1,
+            RenderFailureCriteria, "criteria", RenderFailureCriteria1,
         ),
         dispatcher=regroup_dispatcher(source),
         instructions=regroup_instructions(source),
