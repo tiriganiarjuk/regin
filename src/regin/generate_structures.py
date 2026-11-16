@@ -40,7 +40,8 @@ def main() -> int:
     for schema_name, module_name in all_schemas.items():
         schema_path = SCHEMAS_DIR / f"{schema_name}.schema.json"
         if not schema_path.exists():
-            sys.stdout.write(f"  SKIP: {schema_name} (schema not found)\n")
+            sys.stderr.write(f"  FAIL: {schema_name} (schema not found at {schema_path})\n")
+            failed += 1
             continue
 
         output_path = STRUCTURES_DIR / f"{module_name}.py"
