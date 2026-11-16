@@ -1,8 +1,8 @@
 # Regin
 
-DAG pipeline resolver for agent definitions. Each branch transforms exactly the delta between two checkpoint schemas — nothing more. Compiled Rust gates handle all file I/O. Python never touches the filesystem.
+DAG pipeline resolver for agent definitions. Each branch transforms exactly the delta between two checkpoint schemas — nothing more. Compiled Rust gates handle all checkpoint I/O.
 
-**Part of the agent definition pipeline:** [Verdandi](https://github.com/johnny111272/verdandi) → [Draupnir](https://github.com/johnny111272/draupnir) → [Nornir](https://github.com/johnny111272/nornir) Gates → Regin → Galdr
+**Part of the agent definition pipeline:** [Verdandi](https://github.com/tiriganiarjuk/verdandi) → [Draupnir](https://github.com/tiriganiarjuk/draupnir) → [Nornir](https://github.com/tiriganiarjuk/nornir) Gates → Regin → Galdr
 
 ## What This Is
 
@@ -30,13 +30,13 @@ This means the work function for each branch is minimal by design. The complexit
 
 ## Zero-Trust I/O Boundary
 
-Gates are compiled Rust/PyO3 modules (built in [Nornir](https://github.com/johnny111272/nornir)) that embed JSON Schemas at compile time. They are the only components that touch the filesystem:
+Gates are compiled Rust/PyO3 modules (built in [Nornir](https://github.com/tiriganiarjuk/nornir)) that embed JSON Schemas at compile time. They read and write every checkpoint:
 
 - **Input gates** read TOML from disk, validate against their embedded schema, convert to JSON, and return it
 - **Output gates** receive JSON, validate against their embedded schema, convert to TOML, and write to disk
-- **Passthrough gates** read, validate (including filesystem checks like path existence), and write — no Python involvement
+- **Passthrough gates** read, validate (injecting schema defaults, or checking that paths exist), and write — no Python involvement
 
-Python code between gates never reads files, never writes files, never validates structure. The gates do all of this. This is not a convention — it is an architectural impossibility enforced by the fact that the I/O primitives exist only in the compiled gate modules.
+Python code between gates works on validated JSON and typed models. Reading, writing and validating structure belong to the gates; a guardrail system analyses every Python file and flags file access outside them.
 
 ## Checkpoint-Centric Design
 
@@ -46,16 +46,16 @@ Every checkpoint on disk is TOML. Every gate converts TOML↔JSON at the boundar
 
 ## The DAG Shape
 
-The pipeline is a DAG, not a linear sequence. Step naming encodes the topology: `level{N}_{branch}_{operation}` — same level number means parallel execution.
+The pipeline is a DAG, not a linear sequence. A module is named for what it operates on and what it does (`paths_resolve`, `content_reduce`, `render_regroup`); the graph is stated once, in `src/regin/cli.py`.
 
-- **Level 2** — Path resolution (relative → absolute)
-- **Level 3** — Fan-out: four content reducers run in parallel (instructions, examples, guardrails, success criteria), each resolving file includes into inline content. Independently, the permissions branch resolves security declarations into calculated grants through a six-phase algorithm.
-- **Levels 4–5** — Content merges: execution merge, criteria merge, then includes merge
-- **Level 6** — Convergence: content and permissions branches combine into a single universal format
-- **Level 7** — Regroup: domain-oriented sections reorganise into consumption-oriented sections
-- **Level 8** — Fan-out: per-vendor resolution (currently Anthropic, extensible to others)
+- **Trunk** — inject schema defaults, make workspace-relative paths absolute, verify the paths exist
+- **Fan-out** — four content reducers (instructions, examples, guardrails, success criteria) each resolve file includes into inline content. Independently, the permissions branch resolves security declarations into calculated grants.
+- **Content merges** — execution merge and criteria merge, then includes merge
+- **Convergence** — content and permissions combine into a single universal format
+- **Regroup** — domain-oriented sections reorganise into consumption-oriented sections
+- **Vendor resolution** — one branch per vendor (currently Anthropic)
 
-Content and permissions branches are independent until level 6. Breaking this independence creates implicit coupling — the architecture enforces it through separate checkpoint schemas.
+The content reducers and the permissions branch share no data until convergence. Each reads the same verified checkpoint and writes its own.
 
 ## Usage
 

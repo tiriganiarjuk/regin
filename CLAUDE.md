@@ -2,75 +2,41 @@
 
 ## STOP. Read this before writing any code.
 
-You are working on a DAG pipeline resolver. You have context from a compaction summary or from earlier in this session. **You are almost certainly wrong about the details.**
+You have context from a compaction summary or from earlier in this session. You feel like you understand this project well enough to start working. **You are almost certainly wrong.**
 
-After compaction, you have step names and a DAG shape but lose the gate IO model, the checkpoint-not-branch naming, the pure/impure boundary, and the ways this pipeline's architecture diverges from generic Python patterns. You will produce output that looks right, passes tests, and silently violates the architecture.
+After compaction, you have a summary — not understanding. The summary preserves conclusions but loses reasoning, constraints, and the specific shapes of things. You will produce output that looks right, compiles, and silently violates the project's architecture because the summary told you WHAT but not HOW or WHY NOT.
 
 **This has happened before.** Previous sessions in this project have produced output that compiled, passed review, and implemented the wrong architecture — work that had to be thrown away.
 
 None of them felt uncertain while doing it.
 
-**The test:** Can you draw the DAG from memory — which levels fan out, where the branches are, where they converge? Can you state what gates do (read/write files, validate, convert TOML↔JSON) and what Python does NOT do (no file IO, no validation)? If not, read DAG_EXPLAINED.md and BRANCH_EXPLAINED.md before proceeding.
-
----
-
-## Architecture in One Paragraph
-
-Regin takes a raw agent definition TOML and resolves it through a DAG of gated stages into a platform-agnostic universal render format. Gates are compiled Rust (PyO3) modules that handle ALL file IO — input gates read TOML and return validated JSON, output gates take JSON and write validated TOML. Python code between gates transforms the delta: what the output schema requires that the input schema does not yet contain. The DAG fans out at level 3 into a content branch (four parallel reducers → two merges → includes merge) and a permissions branch (single resolver), converges at level 6, regroups at level 7, then fans out again at level 8 for per-vendor resolution. Every checkpoint on disk is TOML. Every gate converts TOML↔JSON at the boundary. Python always works with JSON. The runner harness is identical for every branch: `gate_in(path) → work(json) → gate_out(path)`.
-
----
-
-## Coding Discipline References
-
-| Document | Path | What it tells you |
-|----------|------|-------------------|
-| **DAG_EXPLAINED** | `tools/regin/DAG_EXPLAINED.md` | Full DAG shape, level descriptions, gate inventory, file naming |
-| **BRANCH_EXPLAINED** | `tools/regin/BRANCH_EXPLAINED.md` | Gate IO model, checkpoint principle, uniform runner, work function contract |
-| **Hemingway Coding** | `phoenix/coding_reference/AI_BREAKTHROUGHS_HEMINGWAY_CODING.md` | Each function does ONE thing |
-| **IO Externalization** | `phoenix/coding_reference/AI_BREAKTHROUGHS_IO_EXTERNALIZATION.md` | 90%+ of errors at IO boundaries — externalize |
-| **Safety Taxonomy** | `phoenix/coding_reference/AI_BREAKTHROUGHS_SAFETY_TAXONOMY.md` | Import path IS the safety contract |
-| **Naming Is Instruction** | `phoenix/coding_reference/AI_BREAKTHROUGHS_NAMING_IS_INSTRUCTION.md` | Names overpower instructions 200:1 |
-| **Economic Model** | `phoenix/coding_reference/AI_BREAKTHROUGHS_ECONOMIC_MODEL.md` | Gleipnir makes bad patterns expensive |
-| **Context Exhaustion** | `phoenix/coding_reference/AI_BREAKTHROUGHS_CONTEXT_EXHAUSTION.md` | Overconfidence + pattern matching = errors |
-| **Workspace SOP** | `documentation/operations/STANDARD_OPERATING_PROCEDURES.md` | Script standards, schema validation rules |
-
----
-
-## MANDATORY: Run Guardrails Frequently
-
-```
-uv run pytest tests/test_guardrails.py
-```
-
-Run after EVERY significant change. Not after finishing a phase. After every file. Architectural debt compounds silently.
-
----
-
-## Context Reminders for Long Sessions
-
-After ANY compaction, ask yourself:
-
-1. **Do gates handle IO?** YES. Python never reads or writes files. Gates read TOML, return JSON. Gates take JSON, write TOML. If you're writing `Path.read_text()`, STOP.
-
-2. **Are steps organized by domain?** `orchestrate/{domain}/orchestrate.py`. Not flat files, not sequential numbering. Domain name describes what the step does. If you're creating flat level files or numbering sequentially, STOP.
-
-3. **Are gates named by checkpoint?** `gate_{checkpoint}_{direction}`. Not by branch. If a gate name contains a branch name, STOP.
-
-4. **Is the work function pure?** It receives JSON from a gate, returns JSON for a gate. Inside it parses to Pydantic models, calls pure functions, serializes. The only impurity allowed is include file loading for content reducers.
-
-5. **Do my functions do more than one thing?** Run guardrails NOW.
-
-6. **Am I reaching for `dict`?** This is a CANARY. We pass typed Pydantic models everywhere.
-
-7. **Am I confused about the branches?** Content branch (levels 3-5) and permissions branch (level 3) are independent until level 6. After level 7, vendor resolvers fan out. Read DAG_EXPLAINED.md.
+**The test:** Can you state three specific constraints of this project that diverge from how you'd normally write this code? Not "I should be careful" — actual constraints, with reasons. If you can't, you don't have enough context to write code. Orient via the CONTEXT_MAP `@import`ed below before proceeding — start with its orientation gate.
 
 ---
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
-<!-- EVERYTHING ABOVE THIS LINE IS BEHAVIORAL (human-maintained, empirical) -->
-<!-- EVERYTHING BELOW THIS LINE IS DYNAMIC ORIENTATION (agent-regenerated)  -->
+<!-- EVERYTHING ABOVE THIS LINE IS STANDARDIZED — DO NOT MODIFY            -->
+<!-- EVERYTHING BELOW THIS LINE IS PROJECT-SPECIFIC                        -->
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 ---
 
-## Dynamic Orientation
+## Project Instructions
 
-@./CONTEXT_MAP.md
+- **A stage is the delta between two checkpoint schemas.** Before reading or writing a stage, compare the schema it reads with the schema it writes. What the second requires that the first lacks is the whole job.
+- **Change a shape at its source.** A model or a schema is changed in the Verdandi YAML and carried forward by the cascade. Generated output is overwritten on the next generation.
+- **Data enters and leaves through a compiled gate or reader.** A file with no gate or no schema goes to the user as a request for one; it waits at the door until then.
+- **Order lives in the wiring.** A module is named for what it operates on and what it does; a checkpoint is named for the state it holds. The graph is stated once, where the stages are called.
+- **Write one file at a time.** Feedback arrives automatically on every write and points at one thing when the write is one file. Follow its direction.
+- **Confirm a change by running the pipeline on a real definition into a scratch directory.** Every stage's output gate and the next stage's input gate check the result.
+
+---
+
+## How you orient — first time or recovery (same thing)
+
+Orienting and recovering are one act: read the project's main documents, **routed by the
+`CONTEXT_MAP` auto-included below** — start with its **orientation gate**, which *is* the
+recovery-source list. If already verifiably oriented you needn't re-read everything; the map
+always tells you where things live.
+
+---
+
+@CONTEXT_MAP.md

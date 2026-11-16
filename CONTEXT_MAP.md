@@ -56,13 +56,14 @@ The definition resolver: it takes an agent definition as authored and resolves i
 | Need | Read |
 |------|------|
 | what a single branch must do | `BRANCH_EXPLAINED.md`, then the two checkpoint schemas it sits between — the delta between them *is* the job |
-| field-level trace through L7 and L8 | `FIELD_MAPPINGS.md` |
+| where a field goes through L7 and L8 | `src/regin/logic/transform/section_regroup/` and `src/regin/logic/transform/vendor_compose/`, read against the universal-format, universal-render and anthropic-render schemas |
 | how to run it | `src/regin/cli.py` — the CLI is the truth; `uv run regin <input.toml> -o <dir>` |
 | where a function goes / what zone / what level | `THE_LEVEL_SYSTEM.md` |
 | how external data becomes typed / a shape has no model | `HOW_DATA_ENTERS.md` |
-| what the gates guarantee, and the four gate patterns | `context/NORNIR_GATES_ELEMENT.md` |
+| what the gates guarantee, and the four gate patterns | `~/ai/smidja/galdr/context/NORNIR_GATES_ELEMENT.md` |
+| which gates exist, each one's kind and schema | `~/ai/smidja/nornir/gates/gate_recipes.toml` |
 | what the checkpoint schemas allow | `~/ai/smidja/verdandi/agent-builder/output/*.schema.json` |
-| what consumes the output | `context/GALDR_ELEMENT.md` — `anthropic_render.toml` is Galdr's data axis |
+| what consumes the output | `~/ai/smidja/galdr/context/GALDR_ELEMENT.md` — `anthropic_render.toml` is Galdr's data axis |
 | the models under `structure/gen/` | generated from the schemas; editing them does nothing. Change the Verdandi YAML and run the cascade |
-| the full forward cascade after an edit | `context/AGENT_BUILD_SYSTEM.md` § The forward cascade |
-| current state / what's left to build | `PLAN.md`, `BRANCH_PLAN.md` (+ `git log`) |
+| the full forward cascade after an edit | `~/ai/smidja/galdr/context/AGENT_BUILD_SYSTEM.md` § The forward cascade |
+| current state / what's left to build | `PLAN.md` (+ `git log`) |

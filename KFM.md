@@ -51,7 +51,7 @@ Previous sessions in this project:
 
 - Named steps sequentially (`step_01`, `step_02`...) on a DAG — hiding parallelism and teaching false dependencies
 - Put IO (file reads/writes) inside Python code when gates handle all IO
-- Used `dict[str, Any]` instead of frozen Pydantic models
+- Used `dict[str, Any]` instead of typed Pydantic models
 - Built ad-hoc Python validation instead of using JSON Schema — a SESSION-TERMINATING violation
 - Written monolithic functions that gleipnir flags for doing too many things
 - Confused the content branch (levels 3-5) with the permissions branch (level 3) — they are independent until level 6
@@ -71,27 +71,27 @@ None of them felt uncertain while doing it.
 ### Naming Steps Sequentially
 **Detection:** If you find yourself writing `step_01`, `step_02`, or any sequential numbering...
 **Why it's wrong:** Sequential numbering on a DAG is a lie. It teaches every future LLM that steps depend on each other linearly. Orchestration is organized by domain: `orchestrate/{domain}/orchestrate.py`. Domain names describe what the step does, not when it runs.
-**Recovery:** Read DAG_EXPLAINED.md "File Naming Convention"
+**Recovery:** Read the wiring in the CLI — it is the only statement of order.
 
 ### Naming Gates After Branches
 **Detection:** If you find yourself thinking "this is the instructions gate" or "this is the permissions gate"...
 **Why it's wrong:** Gates are named after the checkpoint schema they validate, not the branch they belong to. `gate_paths_verified_input` serves five different branches. The gate doesn't know or care which branch calls it.
 **Recovery:** Read BRANCH_EXPLAINED.md "Checkpoints, Not Branches"
 
-### Using dict Instead of Frozen Pydantic Models
-**Detection:** If you find `dict[str, Any]` or `.model_dump()` anywhere except inside a work function before handing JSON to the output gate...
-**Why it's wrong:** Type safety is end-to-end. Models are frozen (`ConfigDict(frozen=True)`). Transformations use `model_copy(update={})`. Serialization via `model_dump_json(by_alias=True, exclude_none=True)` happens ONCE per branch, inside the work function.
+### Using dict Instead of Typed Pydantic Models
+**Detection:** If you find `dict[str, Any]` or `.model_dump()` anywhere...
+**Why it's wrong:** Type safety is end-to-end. Data travels as models from the input gate to the output gate. Serialization to JSON happens ONCE per branch, inside the work function.
 **Recovery:** Look at any work function — it parses JSON to a model, transforms, serializes back.
 
 ### Writing Ad-Hoc Validation Instead of JSON Schema
 **Detection:** If you find `if field not in record` or `isinstance(record[field], str)` checks...
 **Why it's wrong:** SESSION-TERMINATING VIOLATION. Schema validation means a `.schema.json` file exists and the compiled gate validates against it. Always. No exceptions.
-**Recovery:** Read `documentation/operations/STANDARD_OPERATING_PROCEDURES.md` § Schema Validation.
+**Recovery:** Read `HOW_DATA_ENTERS.md`.
 
 ### Breaking the DAG Shape
 **Detection:** If you pass data from a level 3 content step to the permissions step, or make level 4 depend on level 3 permissions output...
 **Why it's wrong:** The content branch (levels 3-5) and the permissions branch (level 3) are independent until level 6 (convergence). Breaking this creates implicit coupling.
-**Recovery:** Read DAG_EXPLAINED.md "The Levels"
+**Recovery:** Read the wiring in the CLI — which checkpoints each stage reads shows what is independent.
 
 ### Exceeding Gleipnir Constraints Then Suppressing
 **Detection:** If you add `# type: ignore`, expand quarantine lists, or think "this function needs to be longer"...

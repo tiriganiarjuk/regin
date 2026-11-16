@@ -62,9 +62,9 @@ Gates are compiled Rust (PyO3) modules produced by Nornir. Each gate embeds a JS
 3. **Converts** JSON → TOML
 4. **Writes** the TOML checkpoint file to disk
 
-**Passthrough gate** (`gate_paths_verified`):
+**Passthrough gate** (`gate_raw_definition_defaults`, `gate_paths_verified`):
 1. **Reads** the TOML checkpoint file
-2. **Validates** (including filesystem path existence checks)
+2. **Validates** — and does its one job: injecting schema defaults, or checking that every path exists
 3. **Writes** the validated TOML checkpoint file
 4. Pass/fail only — no Python transform
 
@@ -78,6 +78,7 @@ The delta is what the output schema requires that the input schema does not cont
 
 | Branch | Input schema says | Output schema says | Delta (the work) |
 |--------|------------------|--------------------|-------------------|
+| Defaults Inject | Optional fields may be absent | Schema defaults are present | Passthrough gate (defaults injected, no Python) |
 | Paths Resolve | Paths are workspace-relative | Paths are absolute | Prepend workspace root |
 | Paths Verify | Paths are absolute strings | Paths are verified-existing | Passthrough gate (filesystem check, no Python) |
 | Instructions Reduce | Instructions may contain `{include: "path"}` | Instructions are all inline `{instruction_mode, instruction_text}` | Read include files, replace references with content |
@@ -89,7 +90,7 @@ The delta is what the output schema requires that the input schema does not cont
 | Criteria Merge | Two separate documents (guardrails + criteria) | One document with both | Verify shared sections match, combine |
 | Includes Merge | Two separate documents (execution + criteria) | One document with all includes resolved | Verify shared sections match, combine |
 | Universal Merge | Two branch documents (content + permissions) | One converged document | Verify shared sections match, add enforcement |
-| Render Regroup | 6 domain-oriented sections | 12 consumption-oriented sections | Regroup fields by consumer need |
+| Render Regroup | Domain-oriented sections | Consumption-oriented sections | Regroup fields by consumer need |
 | Anthropic Resolve | Platform-agnostic render sections | Anthropic-specific tools, hooks, model, frontmatter | Apply vendor lookup tables |
 
 ## The Uniform Runner
@@ -103,22 +104,23 @@ gate_in(path)  →  { WORK }  →  gate_out(path)
 The gate IS the IO boundary. No separate load. No separate write. The runner calls the input gate with a file path, gets JSON back, passes it to the work function, takes the JSON result, and passes it to the output gate with an output path.
 
 ```python
-def run(input_gate, output_gate, work, input_path, output_path):
-    json_in  = call_gate(input_gate, input_path)
+def run(input_path, output_path):
+    json_in  = validate_input(gate_X_input, input_path)
     json_out = work(json_in)
-    call_gate(output_gate, json_out, output_path)
+    validate_output(gate_Y_output, json_out, output_path)
 ```
 
-For merge branches, multiple input gates:
+For merge branches, one input gate per input:
 
 ```python
-def run(input_gates, output_gate, work, input_paths, output_path):
-    jsons    = [call_gate(g, p) for g, p in zip(input_gates, input_paths)]
-    json_out = work(*jsons)
-    call_gate(output_gate, json_out, output_path)
+def run(left_path, right_path, output_path):
+    json_left  = validate_input(gate_A_input, left_path)
+    json_right = validate_input(gate_B_input, right_path)
+    json_out   = work(json_left, json_right)
+    validate_output(gate_Y_output, json_out, output_path)
 ```
 
-Same harness. Different arity.
+Same harness. Different arity. A failed gate raises, naming the gate, the failure class and the gate's message.
 
 ## The Work Function Contract
 
@@ -136,16 +138,16 @@ def work(gated_json: str) -> str:
 
     result = transform(model)
 
-    return result.model_dump_json(by_alias=True, exclude_none=True)
+    return result.model_dump_json(by_alias=True, exclude_unset=True, exclude_none=True)
 ```
 
-The serialization options are always the same: `by_alias=True` (match schema field names), `exclude_none=True` (omit absent optional fields). This happens once per branch, inside the work function, before the result is handed to the output gate.
+The serialization options are always the same: `by_alias=True` (match schema field names), `exclude_unset=True` and `exclude_none=True` (omit absent optional fields). This happens once per branch, inside the work function, before the result is handed to the output gate.
 
 ## Why This Works
 
 The gate pair defines the contract. The work function fulfills it. Nothing more.
 
-- **If the delta is zero** (paths verify), there is no work function — the passthrough gate handles everything.
+- **If the delta is zero** (defaults inject, paths verify), there is no work function — the passthrough gate handles everything.
 - **If the delta is structural** (merge branches), the work function combines documents and the output gate validates the combined result.
 - **If the delta is computational** (permissions resolve), the work function runs an algorithm and the output gate validates the result.
 - **If the delta is vendor-specific** (anthropic resolve), the work function applies lookup tables and the output gate validates the result.
@@ -154,22 +156,6 @@ The pattern never changes. The complexity lives in the pure functions the work f
 
 ## Gate Inventory
 
-Gates are named `gate_{checkpoint}_{direction}`. Every checkpoint schema gets an input/output pair. The passthrough gate is the sole exception.
+Gates are named `gate_{checkpoint}_{direction}`: `_input` reads, `_output` writes, and a passthrough gate carries no direction.
 
-| Checkpoint Schema | Input Gate | Output Gate |
-|-------------------|-----------|-------------|
-| `agent-raw-definition` | `gate_raw_definition_input` | — |
-| `agent-paths-resolved` | — | `gate_paths_resolved_output` |
-| `agent-paths-resolved` (verified) | `gate_paths_verified_input` | — |
-| *(passthrough)* | `gate_paths_verified` | |
-| `agent-instructions-reduced` | `gate_instructions_reduced_input` | `gate_instructions_reduced_output` |
-| `agent-examples-reduced` | `gate_examples_reduced_input` | `gate_examples_reduced_output` |
-| `agent-guardrails-reduced` | `gate_guardrails_reduced_input` | `gate_guardrails_reduced_output` |
-| `agent-success-reduced` | `gate_success_reduced_input` | `gate_success_reduced_output` |
-| `agent-execution-merged` | `gate_execution_merged_input` | `gate_execution_merged_output` |
-| `agent-criteria-merged` | `gate_criteria_merged_input` | `gate_criteria_merged_output` |
-| `agent-includes-merged` | `gate_includes_merged_input` | `gate_includes_merged_output` |
-| `agent-permissions-resolved` | `gate_permissions_resolved_input` | `gate_permissions_resolved_output` |
-| `agent-universal-format` | `gate_universal_format_input` | `gate_universal_format_output` |
-| `agent-universal-render` | `gate_universal_render_input` | `gate_universal_render_output` |
-| `agent-anthropic-render` | — | `gate_anthropic_render_output` |
+The inventory is `~/ai/smidja/nornir/gates/gate_recipes.toml` — one recipe per gate, giving its name, kind and schema. Every gate is generated from its recipe, so that file is the complete and current list.

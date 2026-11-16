@@ -7,8 +7,9 @@
 # ///
 """Generate Pydantic models from JSON Schema files.
 
-Reads schema mappings from codegen_schemas.toml, fetches schemas from
-smidja/verdandi/agent-builder/output/, and writes model modules to structures/.
+Reads schema mappings from codegen_schemas.toml through the TOML reader,
+fetches schemas from smidja/verdandi/agent-builder/output/, and writes model
+modules to structure/gen/.
 
 Run after Draupnir regenerates schemas to keep models in sync.
 """
