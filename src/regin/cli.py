@@ -1,7 +1,7 @@
 """Regin CLI — run the full DAG pipeline.
 
-Takes a raw agent definition TOML and resolves it through 13 gated
-stages into an anthropic_render.toml ready for Galdr.
+Takes a raw agent definition TOML and resolves it through the gated
+stages below into an anthropic_render.toml ready for Galdr.
 
 Usage:
     regin /path/to/agent-definition.toml

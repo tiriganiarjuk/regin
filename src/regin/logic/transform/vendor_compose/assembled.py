@@ -3,7 +3,7 @@
 CC=1-2. Imports from composed and simple within this module.
 
 Takes the universal render model and the pre-resolved AnthropicContext
-(model, tool, display, hooks) and assembles all 14 Anthropic sections.
+(model, tool, permissions, hooks) and assembles every Anthropic section.
 
 Most sections pass through unchanged (identical structure in both formats).
 Three sections are vendor-specific: identity (adds resolved model),
@@ -32,7 +32,7 @@ def compose_anthropic_sections(
     source: render.AgentUniversalRender,
     context: AnthropicContext,
 ) -> anthr.AgentAnthropicRender:
-    """Assemble all 14 Anthropic sections from universal render + context.
+    """Assemble every Anthropic section from universal render + context.
 
     The AnthropicContext carries everything resolved in L8 before this point:
     the concrete model name, the matched registry tool, the filesystem permissions,
@@ -60,6 +60,6 @@ def compose_anthropic_sections(
         frontmatter=compose_frontmatter(
             identity,
             anthr.AgentDescription(source.dispatcher.agent_description.root),
-            context.model, context.hooks, context.merged_tools,
+            context,
         ),
     )

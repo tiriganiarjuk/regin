@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "codegen-schemas-schema-v1",
+  "title": "Codegen Schemas Config",
+  "description": "Maps each Verdandi agent-builder schema name to the generated Pydantic module path under src/regin/structure/. Source: src/regin/codegen_schemas.toml. Read by generate_structures.py through read_toml_validate_json.",
+  "type": "object",
+  "required": ["checkpoint", "include"],
+  "additionalProperties": false,
+  "properties": {
+    "checkpoint": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "pattern": "^agent-[a-z-]+$"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^gen/schema/[a-z_]+$"
+      }
+    },
+    "include": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "pattern": "^include-[a-z-]+$"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^gen/fragment/[a-z_]+$"
+      }
+    }
+  }
+}

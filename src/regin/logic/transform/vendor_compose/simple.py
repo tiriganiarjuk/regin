@@ -14,6 +14,7 @@ from pydantic import BaseModel
 
 from regin.structure.gen.schema import agent_universal_render as render
 from regin.structure.gen.schema import agent_anthropic_render as anthr
+from regin.structure.model.anthropic_context import AnthropicContext
 
 
 def pass_through(
@@ -76,9 +77,7 @@ def collect_tool_names(merged_tools: anthr.ToolPathEntries | None) -> set[str]:
 def compose_frontmatter(
     identity: anthr.IdentityAnthropic,
     description: anthr.AgentDescription,
-    model: anthr.AnthropicModel,
-    hooks: anthr.HooksConfig,
-    merged_tools: anthr.ToolPathEntries | None,
+    context: AnthropicContext,
 ) -> anthr.Frontmatter:
     """Compose frontmatter — the Anthropic-specific YAML preamble.
 
@@ -91,10 +90,10 @@ def compose_frontmatter(
     return anthr.Frontmatter(
         name=identity.title,
         description=description,
-        model=model,
+        model=context.model,
         permission_mode=anthr.PermissionMode.bypassPermissions,
         tools=anthr.FrontmatterTools(
-            [anthr.PascalString(name) for name in sorted(collect_tool_names(merged_tools))]
+            [anthr.PascalString(name) for name in sorted(collect_tool_names(context.merged_tools))]
         ),
-        hooks=hooks,
+        hooks=context.hooks,
     )

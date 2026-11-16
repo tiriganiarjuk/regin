@@ -10,8 +10,8 @@ import read_toml_validate_json
 from regin.structure.model.gate_types import GateResult
 
 
-def read_registry(file_path: str, schema_name: str, schema_dir: str) -> GateResult:
-    """Read the TOML registry, validate against the named schema, return the typed gate result.
+def read_toml(file_path: str, schema_name: str, schema_dir: str) -> GateResult:
+    """Read a TOML file, validate against the named schema, return the typed gate result.
 
     ok true: data is the validated JSON string. ok false: error names the failure class.
     """

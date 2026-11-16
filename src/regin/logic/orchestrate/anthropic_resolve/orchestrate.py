@@ -2,7 +2,7 @@
 
 Gate in:  gate_universal_render_input (reads TOML, returns validated JSON)
 Gate out: gate_anthropic_render_output (validates JSON, writes TOML)
-Delta:    12 consumption sections -> 13 Anthropic sections.
+Delta:    consumption sections -> Anthropic sections.
           Model resolved, grants exploded, hooks built, frontmatter composed.
 """
 

@@ -15,9 +15,9 @@ Run after Draupnir regenerates schemas to keep models in sync.
 
 import subprocess
 import sys
-import tomllib
 from pathlib import Path
 
+from regin.logic.impure.codegen_config.simple import load_codegen_schemas
 from regin.logic.transform.codegen_clean.composed import strip_redundant_constraints
 
 PACKAGE_ROOT = Path(__file__).resolve().parent
@@ -26,12 +26,13 @@ SMIDJA = Path.home() / "ai" / "smidja"
 SCHEMAS_DIR = SMIDJA / "verdandi" / "agent-builder" / "output"
 STRUCTURES_DIR = PACKAGE_ROOT / "structure"
 CONFIG_PATH = PACKAGE_ROOT / "codegen_schemas.toml"
+CONFIG_SCHEMA_DIR = PACKAGE_ROOT.parents[1] / "schemas" / "config"
 
 
 def main() -> int:
     """Generate all Pydantic model modules from JSON Schemas."""
-    config = tomllib.loads(CONFIG_PATH.read_text())
-    all_schemas = {**config["checkpoint"], **config["include"]}
+    config = load_codegen_schemas(CONFIG_PATH, CONFIG_SCHEMA_DIR)
+    all_schemas = {**config.checkpoint, **config.include}
 
     success = 0
     failed = 0
