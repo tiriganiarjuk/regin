@@ -7,12 +7,14 @@ readers/). Isolated in its own module so a missing compiled reader fails as
 
 import read_toml_validate_json
 
-from regin.structure.model.gate_types import GateResult
+from regin.structure.model.gate_types import GateRefusal, GateResult, GateSuccess
 
 
-def read_toml(file_path: str, schema_name: str, schema_dir: str) -> GateResult:
-    """Read a TOML file, validate against the named schema, return the typed gate result.
+def read_toml(file_path: str, schema_name: str, schema_dir: str) -> GateSuccess | GateRefusal:
+    """Read a TOML file, validate against the named schema, return the typed outcome.
 
-    ok true: data is the validated JSON string. ok false: error names the failure class.
+    A GateSuccess carries the validated JSON string in `data`. A GateRefusal
+    names the failure class in `error.type`.
     """
-    return GateResult.model_validate(read_toml_validate_json.read(file_path, schema_name, schema_dir))
+    result = read_toml_validate_json.read(file_path, schema_name, schema_dir)
+    return GateResult.model_validate(result).root

@@ -62,11 +62,13 @@ Gates are compiled Rust (PyO3) modules produced by Nornir. Each gate embeds a JS
 3. **Converts** JSON → TOML
 4. **Writes** the TOML checkpoint file to disk
 
-**Passthrough gate** (`gate_raw_definition_defaults`, `gate_paths_verified`):
+**Defaults gate** (`gate_raw_definition_defaults`) and **passthrough gate** (`gate_paths_verified`):
 1. **Reads** the TOML checkpoint file
 2. **Validates** — and does its one job: injecting schema defaults, or checking that every path exists
 3. **Writes** the validated TOML checkpoint file
-4. Pass/fail only — no Python transform
+4. No Python transform. The defaults gate hands back the JSON it wrote; the passthrough gate's success is the written file
+
+Every gate call ends in one of two typed outcomes, a success or a refusal carrying its failure class; `structure/model/gate_types.py` holds the models.
 
 Every checkpoint is TOML on disk. Every gate converts TOML ↔ JSON at the boundary. The Python between gates always works with JSON. The format on disk is always TOML. No exceptions.
 
