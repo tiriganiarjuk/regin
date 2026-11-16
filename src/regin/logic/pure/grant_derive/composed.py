@@ -193,7 +193,7 @@ def assemble_output_tool(
     if tool_format in (OutputFormatKind.text, OutputFormatKind.markdown):
         return None
     prepared = prepare_tool_fields(security, processing)
-    name_known = processing.output_file_name_known
+    name_known = OutputFileNameKnown(processing.output_file_name_known.value)
     return EnforcementOutputTool(
         output_tool_format=tool_format,
         output_tool_schema_path=prepared["schema_path"],

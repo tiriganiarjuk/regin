@@ -2,7 +2,7 @@
 # /// script
 # requires-python = ">=3.13"
 # dependencies = [
-#     "datamodel-code-generator==0.55.0",
+#     "datamodel-code-generator==0.91.0",
 # ]
 # ///
 """Generate Pydantic models from JSON Schema files.
@@ -19,7 +19,6 @@ import sys
 from pathlib import Path
 
 from regin.logic.impure.codegen_config.simple import load_codegen_schemas
-from regin.logic.transform.codegen_clean.composed import strip_redundant_constraints
 
 PACKAGE_ROOT = Path(__file__).resolve().parent
 WORKSPACE = PACKAGE_ROOT.parents[3]
@@ -66,9 +65,6 @@ def main() -> int:
             failed += 1
             continue
 
-        content = output_path.read_text()
-        content = strip_redundant_constraints(content)
-        output_path.write_text(content)
         sys.stdout.write(f"  {schema_name} -> {module_name}.py\n")
         success += 1
 
