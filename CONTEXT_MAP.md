@@ -47,8 +47,6 @@ The definition resolver: it takes an agent definition as authored and resolves i
 7. `THE_LEVEL_SYSTEM.md` — zones, levels, and the decision procedure for where every piece of code lives.
 8. `HOW_DATA_ENTERS.md` — the boundary: how external data becomes typed, and why unknown data never gets in.
 
-**Proof:** before writing anything, state (a) which stages run in parallel and how you know, (b) what *"Delta: NONE — the gate IS the branch"* means and why that is a legitimate stage rather than a stub, and (c) one thing you would have written that this architecture forbids.
-
 ---
 
 ## Refresh guide — want X → read Y
